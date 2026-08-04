@@ -1,0 +1,210 @@
+{% doc %}
+  Design tokens for Reimagined.
+
+  Rendered after `theme-styles-variables` and `color-palette` so these values win
+  on the cascade. Two jobs:
+
+  1. Declare the `--brand-*` tokens every custom section reads.
+  2. Re-point Horizon's own type variables at those tokens, so the pages left on
+     stock templates — search, 404, policies, account — inherit the brand
+     without needing custom sections of their own.
+
+  This file is the source of truth for the design values. Colours are mirrored
+  into the theme settings palette so stock components match, but a change should
+  be made here first.
+
+  px equivalents are noted beside the rem values because the handoff specifies
+  everything in px; rem is used so the type still responds to a reader's own
+  font-size preference.
+{% enddoc %}
+
+{% comment %}
+  Marks the document as safe to hide reveal targets before paint. The timeout is
+  a failsafe: if brand-reveal.js never loads, the class is dropped and every
+  [data-reveal] element falls back to being plainly visible rather than staying
+  invisible forever.
+{% endcomment %}
+<script>
+  document.documentElement.classList.add('brand-js');
+  window.setTimeout(function () {
+    if (!window.brandRevealReady) document.documentElement.classList.remove('brand-js');
+  }, 3000);
+</script>
+
+{% style %}
+  :root {
+    /* ---------------------------------------------------------------- Colour */
+    --brand-navy: #111326;
+    --brand-navy-rgb: 17 19 38;
+    --brand-navy-raised: #1a1d33;
+    --brand-navy-hover: #2a2d4a;
+    --brand-bone: #f5f4f1;
+    --brand-white: #ffffff;
+    --brand-error: #c8102e;
+
+    --brand-hairline: rgb(var(--brand-navy-rgb) / 0.12);
+    --brand-rule: 1px solid var(--brand-hairline);
+
+    /* Handoff gives these as ranges; these are the mid values. */
+    --brand-body-muted: rgb(var(--brand-navy-rgb) / 0.6);
+    --brand-label-muted: rgb(var(--brand-navy-rgb) / 0.46);
+    --brand-on-navy-body: rgb(255 255 255 / 0.78);
+    --brand-on-navy-label: rgb(255 255 255 / 0.5);
+    --brand-on-navy-rule: 1px solid rgb(255 255 255 / 0.16);
+
+    /* ------------------------------------------------------------------ Type */
+    --brand-font-display: Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --brand-font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+    /* Each role pairs a `font` shorthand with its tracking, since letter-spacing
+       cannot ride along in the shorthand. */
+
+    /* Display — 34/72px */
+    --brand-type-display: 800 clamp(2.125rem, 5.4vw, 4.5rem) / 0.97 var(--brand-font-display);
+    --brand-tracking-display: -0.034em;
+
+    /* Section heading — 28/44px */
+    --brand-type-heading: 800 clamp(1.75rem, 3.4vw, 2.75rem) / 1.04 var(--brand-font-display);
+    --brand-tracking-heading: -0.03em;
+
+    /* Card title — 18px */
+    --brand-type-card-title: 700 1.125rem / 1.25 var(--brand-font-display);
+    --brand-tracking-card-title: -0.015em;
+
+    /* Body — 15/17px, long-form 16/19px, small 14px */
+    --brand-type-body: 400 clamp(0.9375rem, 1.4vw, 1.0625rem) / 1.6 var(--brand-font-display);
+    --brand-type-body-long: 400 clamp(1rem, 1.5vw, 1.1875rem) / 1.68 var(--brand-font-display);
+    --brand-type-body-sm: 400 0.875rem / 1.55 var(--brand-font-display);
+
+    /* Mono label — 11px, small 10px. Always paired with text-transform: uppercase. */
+    --brand-type-label: 500 0.6875rem / 1.4 var(--brand-font-mono);
+    --brand-type-label-sm: 500 0.625rem / 1.4 var(--brand-font-mono);
+    --brand-tracking-label: 0.13em;
+
+    /* Button — 11.5px */
+    --brand-type-button: 600 0.71875rem / 1 var(--brand-font-mono);
+    --brand-tracking-button: 0.13em;
+
+    /* Tile year — 56/72px, coloured from the product's accent metafield */
+    --brand-type-year: 900 clamp(3.5rem, 5vw, 4.5rem) / 0.78 var(--brand-font-display);
+    --brand-tracking-year: -0.06em;
+
+    /* -------------------------------------------------------------- Geometry */
+    --brand-gutter: 26px;
+    --brand-max-width: 1180px;
+    --brand-section-padding: clamp(3.5rem, 7vw, 6rem); /* 56/96px */
+    --brand-radius: 2px;
+    --brand-radius-pill: 999px;
+    --brand-social-size: 34px;
+
+    /* Breakpoints, for reference — media queries cannot read custom properties:
+       760px  mobile pass
+       900px  PDP two-column
+       1100px 4-up related grid */
+
+    /* ------------------------------------------------------------- Animation */
+    --brand-transition: 0.22s ease;
+    --brand-transition-slow: 0.25s ease;
+    --brand-ease-reveal: cubic-bezier(0.16, 1, 0.3, 1);
+    --brand-reveal-duration: 0.85s;
+    --brand-reveal-shift: 22px;
+
+    /* ------------------------------- Horizon font slots mapped to the brand */
+    --font-body--family: var(--brand-font-display);
+    --font-body--style: normal;
+    --font-body--weight: 400;
+    --font-heading--family: var(--brand-font-display);
+    --font-heading--style: normal;
+    --font-heading--weight: 800;
+    --font-subheading--family: var(--brand-font-mono);
+    --font-subheading--style: normal;
+    --font-subheading--weight: 500;
+    --font-accent--family: var(--brand-font-display);
+    --font-accent--style: normal;
+    --font-accent--weight: 900;
+
+    /* Horizon derives its h1–h6 sizes from a clamp formula driven by the theme
+       settings. That formula cannot reproduce the handoff's curve, so the
+       presets are set here directly and the settings left as editor labels. */
+    --font-paragraph--family: var(--brand-font-display);
+    --font-paragraph--style: normal;
+    --font-paragraph--weight: 400;
+    --font-paragraph--size: clamp(0.9375rem, 1.4vw, 1.0625rem);
+    --font-paragraph--line-height: 1.6;
+    --font-paragraph--letter-spacing: 0em;
+    --font-paragraph--case: none;
+
+    --font-h1--family: var(--brand-font-display);
+    --font-h1--style: normal;
+    --font-h1--weight: 800;
+    --font-h1--size: clamp(2.125rem, 5.4vw, 4.5rem);
+    --font-h1--line-height: 0.97;
+    --font-h1--letter-spacing: -0.034em;
+    --font-h1--case: none;
+
+    --font-h2--family: var(--brand-font-display);
+    --font-h2--style: normal;
+    --font-h2--weight: 800;
+    --font-h2--size: clamp(2.125rem, 5.4vw, 4.5rem);
+    --font-h2--line-height: 0.97;
+    --font-h2--letter-spacing: -0.034em;
+    --font-h2--case: none;
+
+    --font-h3--family: var(--brand-font-display);
+    --font-h3--style: normal;
+    --font-h3--weight: 800;
+    --font-h3--size: clamp(1.75rem, 3.4vw, 2.75rem);
+    --font-h3--line-height: 1.04;
+    --font-h3--letter-spacing: -0.03em;
+    --font-h3--case: none;
+
+    --font-h4--family: var(--brand-font-display);
+    --font-h4--style: normal;
+    --font-h4--weight: 700;
+    --font-h4--size: 1.125rem;
+    --font-h4--line-height: 1.25;
+    --font-h4--letter-spacing: -0.015em;
+    --font-h4--case: none;
+
+    --font-h5--family: var(--brand-font-mono);
+    --font-h5--style: normal;
+    --font-h5--weight: 500;
+    --font-h5--size: 0.6875rem;
+    --font-h5--line-height: 1.4;
+    --font-h5--letter-spacing: 0.13em;
+    --font-h5--case: uppercase;
+
+    --font-h6--family: var(--brand-font-mono);
+    --font-h6--style: normal;
+    --font-h6--weight: 500;
+    --font-h6--size: 0.625rem;
+    --font-h6--line-height: 1.4;
+    --font-h6--letter-spacing: 0.14em;
+    --font-h6--case: uppercase;
+
+    /* Horizon's generic error colour, brought in line with the form validation
+       colour the designs use. */
+    --color-error: var(--brand-error);
+  }
+
+  /* ---------------------------------------------------------- Scroll reveals */
+
+  {% comment %}
+    One observer drives every reveal on the site (brand-reveal.js). A section
+    opts in by adding data-reveal="<stagger in ms>" to an element.
+  {% endcomment %}
+  @media (prefers-reduced-motion: no-preference) {
+    .brand-js [data-reveal] {
+      opacity: 0;
+      transform: translateY(var(--brand-reveal-shift));
+      transition:
+        opacity var(--brand-reveal-duration) var(--brand-ease-reveal),
+        transform var(--brand-reveal-duration) var(--brand-ease-reveal);
+    }
+
+    .brand-js [data-reveal].is-revealed {
+      opacity: 1;
+      transform: none;
+    }
+  }
+{% endstyle %}

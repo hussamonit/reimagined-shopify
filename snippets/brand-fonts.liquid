@@ -1,0 +1,22 @@
+{% doc %}
+  Loads the two brand faces.
+
+  Archivo and IBM Plex Mono are pinned here rather than routed through Shopify's
+  font picker: the design uses Archivo 800 and 900 for display type and the tile
+  year, and the picker cannot serve that weight range. `brand-tokens` maps both
+  families onto Horizon's four font slots.
+
+  The css2 endpoint splits its @font-face rules by unicode-range, so a latin-only
+  page only ever downloads the latin subset — no subset parameter needed.
+{% enddoc %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link
+  rel="preconnect"
+  href="https://fonts.gstatic.com"
+  crossorigin
+>
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap"
+>

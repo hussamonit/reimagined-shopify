@@ -50,6 +50,14 @@
   type="module"
 ></script>
 
+{%- comment -%}
+  Not low priority: every [data-reveal] element stays hidden until this runs.
+{%- endcomment -%}
+<script
+  src="{{ 'brand-reveal.js' | asset_url }}"
+  type="module"
+></script>
+
 <script
   src="{{ 'page-view-event.js' | asset_url }}"
   type="module"

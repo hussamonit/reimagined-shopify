@@ -26,10 +26,16 @@
 
     {%- render 'meta-tags' -%}
     {%- render 'stylesheets' -%}
-    {%- render 'fonts' -%}
+    {%- comment -%}
+      Replaces the stock `fonts` snippet, which preloads whatever the theme's
+      font pickers point at. The brand faces come from Google Fonts instead —
+      see brand-fonts for why — so those preloads would be dead weight.
+    {%- endcomment -%}
+    {%- render 'brand-fonts' -%}
     {%- render 'scripts' -%}
     {%- render 'theme-styles-variables' -%}
     {%- render 'color-palette' -%}
+    {%- render 'brand-tokens' -%}
 
     {% if request.design_mode %}
       {%- render 'theme-editor' -%}
