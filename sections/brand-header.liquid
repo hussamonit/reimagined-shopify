@@ -1,0 +1,371 @@
+{% liquid
+  comment
+    The masthead has two modes. Over the homepage hero it is transparent and
+    carries the collapsing wordmark; everywhere else it is a plain sticky white
+    bar with the logo mark centred. Only the overlay mode needs JavaScript.
+  endcomment
+
+  assign overlay = false
+  if section.settings.overlay_hero and template.name == 'index'
+    assign overlay = true
+    assign tag = 'brand-header-overlay'
+  else
+    assign tag = 'header'
+  endif
+%}
+
+{% comment %}
+  role is set explicitly in both modes: the section wrapper nests this inside a
+  <section>, where a bare <header> would stop mapping to the banner landmark.
+{% endcomment %}
+<{{ tag }}
+  class="brand-nav{% if overlay %} brand-nav--overlay{% endif %}"
+  role="banner"
+  {% if overlay %}
+    data-mark-width="{{ section.settings.nav_mark_width }}"
+    data-shrink-distance="{{ section.settings.shrink_distance }}"
+  {% endif %}
+>
+  <div class="brand-nav__bar">
+    <nav class="brand-nav__group" {% if overlay %}ref="links[]"{% endif %} aria-label="{{ 'accessibility.menu' | t }}">
+      {%- for link in section.settings.menu.links -%}
+        <a
+          href="{{ link.url }}"
+          class="brand-nav__link{% if link.active and overlay == false %} brand-nav__link--current{% endif %}"
+        >
+          {{- link.title -}}
+        </a>
+      {%- endfor -%}
+    </nav>
+
+    {%- comment -%}
+      Always rendered. Over a hero the collapsing marks below take its place and
+      CSS hides it, but it has to exist for every other case — including the
+      homepage before its hero section is added.
+    {%- endcomment -%}
+    <a
+      href="{{ routes.root_url }}"
+      class="brand-nav__logo"
+      aria-label="{{ shop.name }}"
+    >
+      <img
+        src="{{ 'brand-logo-navy.svg' | asset_url }}"
+        alt=""
+        width="26"
+        height="26"
+      >
+    </a>
+
+    <div class="brand-nav__group brand-nav__group--end" {% if overlay %}ref="links[]"{% endif %}>
+      {%- if section.settings.show_account -%}
+        <a
+          href="{{ routes.account_url }}"
+          class="brand-nav__link brand-nav__link--account"
+        >
+          {{- 'accessibility.account' | t -}}
+        </a>
+      {%- endif -%}
+
+      <brand-cart-count>
+        <a href="{{ routes.cart_url }}" class="brand-nav__link brand-nav__cart">
+          {{- 'accessibility.cart' | t }} (<span ref="count">{{ cart.item_count }}</span>)
+        </a>
+      </brand-cart-count>
+    </div>
+  </div>
+
+  {%- if overlay -%}
+    {% comment %}
+      Both colourways of each mark are stacked and cross-faded, rather than
+      recoloured, because these are flat SVG files served as images.
+    {% endcomment %}
+    <div class="brand-nav__mark" ref="mark">
+      <img src="{{ 'brand-wordmark-white.svg' | asset_url }}" alt="{{ shop.name }}" ref="markLight">
+      <img src="{{ 'brand-wordmark-navy.svg' | asset_url }}" alt="" ref="markDark">
+    </div>
+
+    <div class="brand-nav__logo-mark" ref="logo">
+      <div class="brand-nav__logo-mark-inner" ref="logoInner">
+        <img src="{{ 'brand-logo-white.svg' | asset_url }}" alt="" ref="logoLight">
+        <img src="{{ 'brand-logo-navy.svg' | asset_url }}" alt="" ref="logoDark">
+      </div>
+    </div>
+  {%- endif -%}
+</{{ tag }}>
+
+{% stylesheet %}
+  /* Registered so the scroll- and hover-driven swaps can be transitioned;
+     an unregistered custom property jumps between values. */
+  @property --brand-nav-contrast {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 0;
+  }
+
+  @property --brand-nav-backdrop {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 0;
+  }
+
+  /* Kept on body so Horizon's own layout rules can still read the bar height,
+     and so the mobile step is declared once. */
+  body {
+    --brand-nav-height: 64px;
+    --header-height: var(--brand-nav-height);
+  }
+
+  /* The section wrapper is the element that positions, so `display: contents`
+     lifts it out of the header group and lets it stick against the page rather
+     than against a wrapper only as tall as itself. Same approach as Horizon's
+     own sticky header. */
+  #header-group {
+    display: contents;
+  }
+
+  .brand-header-section {
+    position: sticky;
+    top: 0;
+    z-index: var(--layer-menu-drawer);
+  }
+
+  /* Over the hero the bar floats on top of the video instead of pushing it down.
+     With no hero to float over it stays in flow, or the first section would
+     start underneath it. */
+  .brand-header-section:has(.brand-nav--overlay:not(.brand-nav--no-hero)) {
+    position: fixed;
+    inset: 0 0 auto;
+  }
+
+  .brand-nav {
+    position: relative;
+    height: var(--brand-nav-height);
+    background: var(--brand-white);
+    border-bottom: var(--brand-rule);
+  }
+
+  .brand-nav--overlay {
+    display: block;
+    background: rgb(255 255 255 / calc(0.97 * var(--brand-nav-backdrop)));
+    border-bottom-color: rgb(var(--brand-navy-rgb) / calc(0.12 * var(--brand-nav-backdrop)));
+    backdrop-filter: blur(calc(12px * var(--brand-nav-backdrop)));
+    transition:
+      background-color 0.3s ease,
+      border-color 0.3s ease,
+      backdrop-filter 0.3s ease;
+  }
+
+  .brand-nav__bar {
+    position: relative;
+    z-index: var(--layer-raised);
+    height: var(--brand-nav-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline: var(--brand-gutter);
+  }
+
+  .brand-nav__group {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .brand-nav__group--end {
+    gap: 22px;
+  }
+
+  .brand-nav__link {
+    font: var(--brand-type-label);
+    font-size: 0.71875rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    color: var(--brand-label-muted);
+    transition: color var(--brand-transition-slow);
+  }
+
+  .brand-nav__link:hover {
+    color: var(--brand-navy);
+  }
+
+  /* The page you are on is the one link drawn at full strength. */
+  .brand-nav__link--current {
+    color: var(--brand-navy);
+    border-bottom: 1px solid currentcolor;
+    padding-bottom: 3px;
+  }
+
+  .brand-nav__cart {
+    color: var(--brand-navy);
+  }
+
+  .brand-nav__logo {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 0;
+  }
+
+  .brand-nav__logo img {
+    display: block;
+    height: 26px;
+    width: auto;
+  }
+
+  /* Stood down while the collapsing wordmark is doing the job. */
+  .brand-nav--overlay:not(.brand-nav--no-hero) .brand-nav__logo {
+    display: none;
+  }
+
+  /* --- Overlay mode ----------------------------------------------------- */
+
+  /* Over the hero the links start white and are lerped to navy as it leaves. */
+  .brand-nav--overlay .brand-nav__link {
+    color: color-mix(in srgb, var(--brand-navy) calc(var(--brand-nav-contrast) * 100%), #fff);
+    transition: color var(--brand-transition-slow);
+  }
+
+  .brand-nav--overlay .brand-nav__link:hover {
+    opacity: 0.7;
+  }
+
+  .brand-nav__mark,
+  .brand-nav__logo-mark {
+    position: absolute;
+    pointer-events: none;
+    z-index: var(--layer-flat);
+  }
+
+  /* Set by the script when the page turns out to have no hero to sit on. */
+  .brand-nav--no-hero {
+    background: var(--brand-white);
+    border-bottom-color: var(--brand-hairline);
+    backdrop-filter: none;
+  }
+
+  .brand-nav--no-hero .brand-nav__mark,
+  .brand-nav--no-hero .brand-nav__logo-mark {
+    display: none;
+  }
+
+  .brand-nav__mark {
+    top: 0;
+    left: 0;
+    width: 100%;
+    transform-origin: 50% 0;
+    will-change: transform;
+
+    /* The resting position, so the wordmark is already placed on first paint
+       rather than jumping down once the script takes over. */
+    transform: translateY(calc(var(--brand-nav-height) + 14px));
+  }
+
+  .brand-nav__mark img {
+    display: block;
+    width: 100%;
+    transition: opacity var(--brand-transition-slow);
+  }
+
+  /* The navy copy sits directly on top of the white one and fades in. Pinned by
+     corner rather than by inset, so it keeps its own aspect instead of being
+     stretched to the box. */
+  .brand-nav__mark img + img,
+  .brand-nav__logo-mark-inner img + img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+  }
+
+  .brand-nav__logo-mark {
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+  }
+
+  .brand-nav__logo-mark-inner {
+    position: relative;
+    height: calc(var(--brand-nav-height) * 0.44);
+    transform-origin: 50% 50%;
+    will-change: transform;
+  }
+
+  .brand-nav__logo-mark-inner img {
+    display: block;
+    height: 100%;
+    width: auto;
+    transition: opacity var(--brand-transition-slow);
+  }
+
+  @media screen and (max-width: 759px) {
+    body {
+      --brand-nav-height: 54px;
+    }
+
+    /* Account moves to the customer's own pages on mobile — the bar is too
+       tight for four links and a 44px tap target. */
+    .brand-nav__link--account {
+      display: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Header",
+  "tag": "section",
+  "class": "brand-header-section",
+  "enabled_on": { "groups": ["header"] },
+  "settings": [
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Menu",
+      "default": "main-menu"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_account",
+      "label": "Show account link",
+      "default": true,
+      "info": "Always hidden below 760px."
+    },
+    {
+      "type": "header",
+      "content": "Homepage hero"
+    },
+    {
+      "type": "checkbox",
+      "id": "overlay_hero",
+      "label": "Overlay the homepage hero",
+      "default": true,
+      "info": "Makes the header transparent on the homepage and adds the wordmark that collapses into the logo as you scroll."
+    },
+    {
+      "type": "range",
+      "id": "shrink_distance",
+      "label": "Collapse over",
+      "min": 60,
+      "max": 400,
+      "step": 10,
+      "unit": "px",
+      "default": 200
+    },
+    {
+      "type": "range",
+      "id": "nav_mark_width",
+      "label": "Collapsed wordmark width",
+      "min": 70,
+      "max": 300,
+      "step": 5,
+      "unit": "px",
+      "default": 150
+    }
+  ]
+}
+{% endschema %}
