@@ -1,0 +1,452 @@
+{%- liquid
+  comment
+    The same theme setting the product page's fit guide reads, so the two can
+    never disagree about a measurement.
+  endcomment
+  assign lines = settings.size_measurements | newline_to_br | split: '<br />'
+  assign unit = section.settings.unit
+-%}
+
+<nav class="brand-crumbs" aria-label="Breadcrumb">
+  <a href="{{ routes.all_products_collection_url }}">{{ section.settings.crumb_root }}</a>
+  <span aria-hidden="true">/</span>
+  <span aria-current="page">{{ section.settings.crumb_current }}</span>
+</nav>
+
+<section class="brand-sizes">
+  <div class="brand-sizes__head">
+    {%- if section.settings.eyebrow != blank -%}
+      <p class="brand-sizes__eyebrow">{{ section.settings.eyebrow }}</p>
+    {%- endif -%}
+    <h1>{{ section.settings.heading }}</h1>
+    {%- if section.settings.intro != blank -%}
+      <p class="brand-sizes__intro">{{ section.settings.intro }}</p>
+    {%- endif -%}
+  </div>
+
+  <brand-size-guide class="brand-sizes__cols">
+    {%- if section.settings.show_diagram -%}
+      <div class="brand-sizes__diagram">
+        {%- comment -%}
+          Drawn rather than photographed: it has to stay legible at any width and
+          carry the A and B markers, which a photo cannot.
+        {%- endcomment -%}
+        <svg viewBox="0 0 340 372" role="img" aria-label="{{ section.settings.diagram_alt | escape }}">
+          <path
+            d="M118,30 L96,38 L40,80 L66,124 L88,108 L88,330 L232,330 L232,108 L254,124 L280,80 L224,38 L202,30 C192,52 128,52 118,30 Z"
+            fill="#fff"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+          />
+          <path d="M118,30 C128,52 192,52 202,30" fill="none" stroke="currentColor" stroke-width="2"/>
+
+          <line x1="88" y1="140" x2="232" y2="140" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <line x1="88" y1="132" x2="88" y2="148" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="232" y1="132" x2="232" y2="148" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="160" cy="140" r="12" fill="currentColor"/>
+          <text x="160" y="144.5" text-anchor="middle" fill="#fff" class="brand-sizes__marker">A</text>
+
+          <line x1="300" y1="38" x2="300" y2="330" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <line x1="292" y1="38" x2="308" y2="38" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="292" y1="330" x2="308" y2="330" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="300" cy="184" r="12" fill="currentColor"/>
+          <text x="300" y="188.5" text-anchor="middle" fill="#fff" class="brand-sizes__marker">B</text>
+        </svg>
+
+        <div class="brand-sizes__readout">
+          <div class="brand-sizes__readout-row">
+            <span>{{ section.settings.chest_marker }}</span>
+            <span ref="chest"></span>
+          </div>
+          <div class="brand-sizes__readout-row">
+            <span>{{ section.settings.length_marker }}</span>
+            <span ref="length"></span>
+          </div>
+          <p
+            class="brand-sizes__showing"
+            ref="showing"
+            data-template="{{ section.settings.showing_label | escape }}"
+            aria-live="polite"
+          ></p>
+        </div>
+      </div>
+    {%- endif -%}
+
+    <div>
+      <div class="brand-sizes__table">
+        <p class="brand-sizes__th">{{ section.settings.size_column }}</p>
+        <p class="brand-sizes__th">{{ section.settings.chest_column }}</p>
+        <p class="brand-sizes__th">{{ section.settings.length_column }}</p>
+
+        {%- assign shown = 0 -%}
+        {%- for line in lines -%}
+          {%- liquid
+            assign row = line | strip | split: '|'
+            if row.size < 3
+              continue
+            endif
+
+            assign code = row[0] | strip
+            assign chest = row[1] | strip | append: unit
+            assign length = row[2] | strip | append: unit
+          -%}
+          <button
+            type="button"
+            class="brand-sizes__row"
+            ref="rows[]"
+            data-size="{{ code | escape }}"
+            data-chest="{{ chest | escape }}"
+            data-length="{{ length | escape }}"
+            aria-current="{% if shown == 0 %}true{% else %}false{% endif %}"
+          >
+            <span class="brand-sizes__code">{{ code }}</span>
+            <span>{{ chest }}</span>
+            <span>{{ length }}</span>
+          </button>
+          {%- assign shown = shown | plus: 1 -%}
+        {%- endfor -%}
+      </div>
+
+      <div class="brand-sizes__notes">
+        {{ section.settings.notes }}
+        {%- if section.settings.link_label != blank -%}
+          <a href="{{ section.settings.link_url }}">{{ section.settings.link_label }} &rarr;</a>
+        {%- endif -%}
+      </div>
+    </div>
+  </brand-size-guide>
+</section>
+
+{% stylesheet %}
+  .brand-sizes {
+    padding: clamp(1.875rem, 4.5vw, 4.625rem) clamp(1.625rem, 7.5vw, 9.375rem) clamp(1.25rem, 3vw, 2.5rem);
+  }
+
+  .brand-sizes__head {
+    max-width: 760px;
+  }
+
+  .brand-sizes__eyebrow {
+    margin: 0;
+    font: var(--brand-type-label);
+    font-size: 0.71875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.45);
+  }
+
+  .brand-sizes__head h1 {
+    margin: 18px 0 0;
+    font: var(--brand-type-display);
+    letter-spacing: -0.035em;
+  }
+
+  .brand-sizes__intro {
+    margin: 20px 0 0;
+    max-width: 54ch;
+    font: var(--brand-type-body);
+    line-height: 1.62;
+    color: rgb(var(--brand-navy-rgb) / 0.66);
+    text-wrap: pretty;
+  }
+
+  .brand-sizes__cols {
+    margin-top: clamp(2.125rem, 4.5vw, 3.625rem);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(1.875rem, 5vw, 4.5rem);
+    align-items: start;
+  }
+
+  /* --- Diagram ----------------------------------------------------------- */
+
+  .brand-sizes__diagram {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: clamp(1.5rem, 3vw, 2.5rem);
+    border-radius: var(--brand-radius);
+    background: var(--brand-bone);
+    color: var(--brand-navy);
+  }
+
+  .brand-sizes__diagram svg {
+    display: block;
+    width: 100%;
+    max-width: 340px;
+    height: auto;
+  }
+
+  .brand-sizes__marker {
+    font: 600 11px var(--brand-font-mono);
+  }
+
+  .brand-sizes__readout {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    padding-top: 18px;
+    border-top: 1px solid rgb(var(--brand-navy-rgb) / 0.14);
+  }
+
+  .brand-sizes__readout-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .brand-sizes__readout-row span:first-child {
+    font: var(--brand-type-label);
+    font-size: 0.65625rem;
+    line-height: 1.4;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.5);
+  }
+
+  .brand-sizes__readout-row span:last-child {
+    font: 700 1.0625rem / 1 var(--brand-font-display);
+    letter-spacing: -0.01em;
+  }
+
+  .brand-sizes__showing {
+    margin: 4px 0 0;
+    font: var(--brand-type-label);
+    font-size: 0.625rem;
+    line-height: 1.5;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.4);
+  }
+
+  /* --- Table ------------------------------------------------------------- */
+
+  .brand-sizes__table {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr 1fr;
+    border-top: 1px solid rgb(var(--brand-navy-rgb) / 0.16);
+  }
+
+  .brand-sizes__th {
+    margin: 0;
+    padding: 14px 12px;
+    border-bottom: 1px solid rgb(var(--brand-navy-rgb) / 0.16);
+    font: var(--brand-type-label);
+    font-size: 0.65625rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.45);
+  }
+
+  .brand-sizes__th:first-child {
+    padding-left: 0;
+  }
+
+  .brand-sizes__row {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr 1fr;
+    align-items: center;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    border-bottom: 1px solid rgb(var(--brand-navy-rgb) / 0.12);
+    background: none;
+    color: var(--brand-navy);
+    text-align: left;
+    cursor: pointer;
+    transition:
+      background-color 0.18s ease,
+      color 0.18s ease;
+  }
+
+  .brand-sizes__row:hover {
+    background: var(--brand-bone);
+  }
+
+  .brand-sizes__row[aria-current='true'] {
+    background: var(--brand-navy);
+    color: var(--brand-white);
+  }
+
+  .brand-sizes__row span {
+    padding: 18px 12px;
+    font: 500 1.0625rem / 1 var(--brand-font-display);
+  }
+
+  .brand-sizes__code {
+    font-weight: 700;
+    font-size: 1.3125rem;
+    letter-spacing: -0.02em;
+    padding-left: 0;
+  }
+
+  .brand-sizes__notes {
+    margin-top: 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 52ch;
+    font: var(--brand-type-body);
+    font-size: 0.9375rem;
+    line-height: 1.62;
+    color: rgb(var(--brand-navy-rgb) / 0.62);
+    text-wrap: pretty;
+  }
+
+  .brand-sizes__notes p {
+    margin: 0;
+  }
+
+  .brand-sizes__notes a {
+    align-self: flex-start;
+    margin-top: 4px;
+    font: var(--brand-type-label);
+    font-size: 0.65625rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: rgb(var(--brand-navy-rgb) / 0.6);
+    border-bottom: 1px solid rgb(var(--brand-navy-rgb) / 0.28);
+  }
+
+  @media screen and (min-width: 900px) {
+    .brand-sizes__cols {
+      grid-template-columns: 0.85fr 1fr;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Size guide",
+  "tag": "div",
+  "class": "brand-size-guide-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "The measurements themselves are edited once in theme settings, under Reimagined. The product page's fit guide reads the same record."
+    },
+    {
+      "type": "text",
+      "id": "crumb_root",
+      "label": "Breadcrumb root",
+      "default": "SHOP"
+    },
+    {
+      "type": "text",
+      "id": "crumb_current",
+      "label": "Breadcrumb current",
+      "default": "SIZE GUIDE"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "SIZE GUIDE"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Find your size."
+    },
+    {
+      "type": "textarea",
+      "id": "intro",
+      "label": "Intro",
+      "default": "Every jersey is cut to the same block, so a size in one design is the same size in all of them. Measurements are of the garment, laid flat, in centimetres."
+    },
+    {
+      "type": "text",
+      "id": "unit",
+      "label": "Unit after each number",
+      "default": " cm"
+    },
+    {
+      "type": "header",
+      "content": "Table"
+    },
+    {
+      "type": "text",
+      "id": "size_column",
+      "label": "First column",
+      "default": "SIZE"
+    },
+    {
+      "type": "text",
+      "id": "chest_column",
+      "label": "Second column",
+      "default": "CHEST"
+    },
+    {
+      "type": "text",
+      "id": "length_column",
+      "label": "Third column",
+      "default": "LENGTH"
+    },
+    {
+      "type": "header",
+      "content": "Diagram"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_diagram",
+      "label": "Show the jersey diagram",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "diagram_alt",
+      "label": "Diagram description",
+      "default": "Jersey measurement diagram"
+    },
+    {
+      "type": "text",
+      "id": "chest_marker",
+      "label": "Label for dimension A",
+      "default": "A · CHEST"
+    },
+    {
+      "type": "text",
+      "id": "length_marker",
+      "label": "Label for dimension B",
+      "default": "B · LENGTH"
+    },
+    {
+      "type": "text",
+      "id": "showing_label",
+      "label": "Which size is shown",
+      "info": "[size] is replaced with the chosen size.",
+      "default": "SHOWING SIZE [size]"
+    },
+    {
+      "type": "header",
+      "content": "Notes"
+    },
+    {
+      "type": "richtext",
+      "id": "notes",
+      "label": "Notes",
+      "default": "<p>Chest is measured straight across the garment from one underarm seam to the other. Length runs from the highest point of the shoulder down to the hem.</p><p>Between two sizes, take the larger one. The cut is meant to sit loose, the way a shirt does on the terraces rather than on the pitch.</p>"
+    },
+    {
+      "type": "text",
+      "id": "link_label",
+      "label": "Link",
+      "default": "ASK US ABOUT FIT"
+    },
+    {
+      "type": "url",
+      "id": "link_url",
+      "label": "Link target"
+    }
+  ],
+  "presets": [{ "name": "Size guide" }]
+}
+{% endschema %}

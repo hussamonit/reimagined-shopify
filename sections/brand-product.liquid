@@ -210,9 +210,23 @@
         <div class="brand-acc">
           {%- for block in section.blocks -%}
             {%- liquid
+              assign title = block.settings.title
               assign body = block.settings.body
+
               if block.type == 'description'
                 assign body = product.description
+              endif
+
+              comment
+                A row can borrow its copy from theme settings instead of
+                carrying its own, so the contact page says the same thing.
+              endcomment
+              if block.settings.policy == 'delivery'
+                assign title = settings.policy_delivery_title
+                assign body = settings.policy_delivery_body
+              elsif block.settings.policy == 'returns'
+                assign title = settings.policy_returns_title
+                assign body = settings.policy_returns_body
               endif
             -%}
             {%- if block.type == 'fit_guide' -%}
@@ -237,7 +251,7 @@
               {%- endcomment -%}
               <details class="brand-acc__row" name="brand-product-accordion" {{ block.shopify_attributes }}>
                 <summary>
-                  <span>{{ block.settings.title }}</span>
+                  <span>{{ title }}</span>
                   <span class="brand-acc__mark" aria-hidden="true"></span>
                 </summary>
                 <div class="brand-acc__body">{{ body }}</div>
@@ -1000,6 +1014,18 @@
       "name": "Accordion row",
       "settings": [
         {
+          "type": "select",
+          "id": "policy",
+          "label": "Copy",
+          "info": "Delivery and returns are written once in theme settings and shared with the contact page.",
+          "options": [
+            { "value": "none", "label": "Written below" },
+            { "value": "delivery", "label": "Delivery, from theme settings" },
+            { "value": "returns", "label": "Returns, from theme settings" }
+          ],
+          "default": "none"
+        },
+        {
           "type": "text",
           "id": "title",
           "label": "Title",
@@ -1008,7 +1034,8 @@
         {
           "type": "richtext",
           "id": "body",
-          "label": "Body"
+          "label": "Body",
+          "visible_if": "{{ block.settings.policy == 'none' }}"
         }
       ]
     }

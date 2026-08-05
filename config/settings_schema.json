@@ -2160,6 +2160,38 @@
       },
       {
         "type": "header",
+        "content": "Delivery and returns"
+      },
+      {
+        "type": "paragraph",
+        "content": "Written once here. The product page accordion and the contact page's answered-already column both read it, so the two can never say different things."
+      },
+      {
+        "type": "text",
+        "id": "policy_delivery_title",
+        "label": "Delivery heading",
+        "default": "DELIVERY"
+      },
+      {
+        "type": "richtext",
+        "id": "policy_delivery_body",
+        "label": "Delivery copy",
+        "default": "<p>2–7 business days in Saudi Arabia, free on orders over 200 SAR. Every order ships tracked, and you get the number the moment it leaves us.</p>"
+      },
+      {
+        "type": "text",
+        "id": "policy_returns_title",
+        "label": "Returns heading",
+        "default": "RETURNS"
+      },
+      {
+        "type": "richtext",
+        "id": "policy_returns_body",
+        "label": "Returns copy",
+        "default": "<p>3 days from delivery, unworn, tags on. Send it back for a refund or a different size — return shipping is on us if the size was our call.</p>"
+      },
+      {
+        "type": "header",
         "content": "Size measurements"
       },
       {

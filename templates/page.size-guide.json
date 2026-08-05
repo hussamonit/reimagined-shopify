@@ -1,0 +1,27 @@
+{
+  "sections": {
+    "size_guide": {
+      "type": "brand-size-guide",
+      "settings": {
+        "crumb_root": "SHOP",
+        "crumb_current": "SIZE GUIDE",
+        "eyebrow": "SIZE GUIDE",
+        "heading": "Find your size.",
+        "intro": "Every jersey is cut to the same block, so a size in one design is the same size in all of them. Measurements are of the garment, laid flat, in centimetres.",
+        "unit": " cm",
+        "size_column": "SIZE",
+        "chest_column": "CHEST",
+        "length_column": "LENGTH",
+        "show_diagram": true,
+        "diagram_alt": "Jersey measurement diagram",
+        "chest_marker": "A · CHEST",
+        "length_marker": "B · LENGTH",
+        "showing_label": "SHOWING SIZE [size]",
+        "notes": "<p>Chest is measured straight across the garment from one underarm seam to the other. Length runs from the highest point of the shoulder down to the hem.</p><p>Between two sizes, take the larger one. The cut is meant to sit loose, the way a shirt does on the terraces rather than on the pitch.</p>",
+        "link_label": "ASK US ABOUT FIT",
+        "link_url": "/pages/contact"
+      }
+    }
+  },
+  "order": ["size_guide"]
+}

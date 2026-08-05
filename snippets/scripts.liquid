@@ -105,6 +105,23 @@
   ></script>
 {%- endif -%}
 
+{%- if template.name == 'page' -%}
+  {%- comment -%}
+    Both are page templates, and each script does nothing unless its element is
+    on the page.
+  {%- endcomment -%}
+  <script
+    src="{{ 'brand-contact.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+  <script
+    src="{{ 'brand-size-guide.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+{%- endif -%}
+
 {%- if template.name == 'index' -%}
   <script
     src="{{ 'brand-intro-loader.js' | asset_url }}"

@@ -1,0 +1,670 @@
+<nav class="brand-crumbs" aria-label="Breadcrumb">
+  <span>{{ section.settings.crumb_root }}</span>
+  <span aria-hidden="true">/</span>
+  <span aria-current="page">{{ section.settings.crumb_current }}</span>
+</nav>
+
+<section class="brand-contact">
+  <div class="brand-contact__head">
+    {%- if section.settings.eyebrow != blank -%}
+      <p class="brand-contact__eyebrow">{{ section.settings.eyebrow }}</p>
+    {%- endif -%}
+    <h1>{{ section.settings.heading }}</h1>
+    {%- if section.settings.intro != blank -%}
+      <p class="brand-contact__intro">{{ section.settings.intro }}</p>
+    {%- endif -%}
+  </div>
+
+  <div class="brand-contact__cols">
+    <div>
+      {%- form 'contact', novalidate: 'novalidate' -%}
+        {%- if form.posted_successfully? -%}
+          <div class="brand-contact__sent">
+            <p class="brand-contact__sent-label">{{ section.settings.sent_label }}</p>
+            <h2>{{ section.settings.sent_heading }}</h2>
+            <p class="brand-contact__sent-body">{{ section.settings.sent_body }}</p>
+            <a href="{{ request.path }}" class="brand-contact__again">{{ section.settings.sent_action }}</a>
+          </div>
+        {%- else -%}
+          <brand-contact
+            class="brand-contact__form"
+            data-error-message="{{ section.settings.error_message | escape }}"
+          >
+            <div class="brand-contact__pair">
+              <label>
+                <span>{{ section.settings.name_label }}</span>
+                <input
+                  ref="name"
+                  type="text"
+                  name="contact[name]"
+                  autocomplete="name"
+                  placeholder="{{ section.settings.name_placeholder | escape }}"
+                >
+              </label>
+
+              <label>
+                <span>{{ section.settings.email_label }}</span>
+                <input
+                  ref="email"
+                  type="email"
+                  name="contact[email]"
+                  autocomplete="email"
+                  placeholder="{{ section.settings.email_placeholder | escape }}"
+                >
+              </label>
+            </div>
+
+            <label>
+              <span>{{ section.settings.topic_label }}</span>
+              <span class="brand-contact__select">
+                <select name="contact[Topic]">
+                  {%- assign topics = section.settings.topics | newline_to_br | split: '<br />' -%}
+                  {%- for topic in topics -%}
+                    {%- assign trimmed = topic | strip -%}
+                    {%- if trimmed != blank -%}
+                      <option value="{{ trimmed | escape }}">{{ trimmed }}</option>
+                    {%- endif -%}
+                  {%- endfor -%}
+                </select>
+              </span>
+            </label>
+
+            {%- if section.settings.show_order_field -%}
+              <label>
+                <span>
+                  {{ section.settings.order_label }}
+                  <span class="brand-contact__optional">{{ section.settings.optional_label }}</span>
+                </span>
+                <input
+                  type="text"
+                  name="contact[Order number]"
+                  placeholder="{{ section.settings.order_placeholder | escape }}"
+                >
+              </label>
+            {%- endif -%}
+
+            <label>
+              <span>{{ section.settings.message_label }}</span>
+              <textarea
+                ref="message"
+                name="contact[body]"
+                rows="7"
+                placeholder="{{ section.settings.message_placeholder | escape }}"
+              ></textarea>
+            </label>
+
+            <div class="brand-contact__actions">
+              <button type="submit">{{ section.settings.submit_label }}</button>
+              <p class="brand-contact__error" ref="error" role="alert" hidden></p>
+              {%- if form.errors -%}
+                <p class="brand-contact__error">{{ section.settings.error_message }}</p>
+              {%- endif -%}
+            </div>
+          </brand-contact>
+        {%- endif -%}
+      {%- endform -%}
+    </div>
+
+    <aside class="brand-contact__aside">
+      {%- if section.settings.show_answers -%}
+        {%- comment -%}
+          Delivery and returns are written once in theme settings, and the
+          product page's accordion reads the same two records.
+        {%- endcomment -%}
+        <p class="brand-contact__aside-label">{{ section.settings.answers_label }}</p>
+
+        <div class="brand-contact__answers">
+          <div class="brand-contact__answer">
+            <p class="brand-contact__answer-title">{{ settings.policy_delivery_title }}</p>
+            <div class="brand-contact__answer-body">{{ settings.policy_delivery_body }}</div>
+            <a href="/policies/shipping-policy">{{ section.settings.shipping_link }} &rarr;</a>
+          </div>
+
+          <div class="brand-contact__answer">
+            <p class="brand-contact__answer-title">{{ settings.policy_returns_title }}</p>
+            <div class="brand-contact__answer-body">{{ settings.policy_returns_body }}</div>
+            <a href="/policies/refund-policy">{{ section.settings.returns_link }} &rarr;</a>
+          </div>
+        </div>
+      {%- endif -%}
+
+      <div class="brand-contact__direct">
+        <p class="brand-contact__aside-label">{{ section.settings.direct_label }}</p>
+        {%- if section.settings.email_address != blank -%}
+          <a href="mailto:{{ section.settings.email_address }}" class="brand-contact__email">
+            {{- section.settings.email_address -}}
+          </a>
+        {%- endif -%}
+        <p class="brand-contact__note">{{ section.settings.reply_window }}</p>
+        <p class="brand-contact__note brand-contact__note--spaced">{{ section.settings.origin_note }}</p>
+      </div>
+    </aside>
+  </div>
+</section>
+
+{% stylesheet %}
+  .brand-contact {
+    padding: clamp(1.875rem, 4.5vw, 4.625rem) clamp(1.625rem, 7.5vw, 9.375rem) clamp(2.75rem, 5vw, 5.25rem);
+  }
+
+  .brand-contact__head {
+    max-width: 760px;
+  }
+
+  .brand-contact__eyebrow {
+    margin: 0;
+    font: var(--brand-type-label);
+    font-size: 0.71875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.45);
+  }
+
+  .brand-contact__head h1 {
+    margin: 18px 0 0;
+    font: var(--brand-type-display);
+    letter-spacing: -0.035em;
+  }
+
+  .brand-contact__intro {
+    margin: 20px 0 0;
+    max-width: 56ch;
+    font: var(--brand-type-body);
+    line-height: 1.62;
+    color: rgb(var(--brand-navy-rgb) / 0.66);
+    text-wrap: pretty;
+  }
+
+  .brand-contact__cols {
+    margin-top: clamp(2.125rem, 4.5vw, 4rem);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(1.875rem, 5vw, 5rem);
+    align-items: start;
+  }
+
+  /* --- Form -------------------------------------------------------------- */
+
+  .brand-contact__form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .brand-contact__pair {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .brand-contact__form label {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .brand-contact__form label > span:first-child {
+    font: var(--brand-type-label);
+    font-size: 0.65625rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.5);
+  }
+
+  .brand-contact__optional {
+    color: rgb(var(--brand-navy-rgb) / 0.32);
+  }
+
+  .brand-contact__form :is(input, select, textarea) {
+    width: 100%;
+    padding: 15px 16px;
+    border: 1px solid rgb(var(--brand-navy-rgb) / 0.22);
+    border-radius: var(--brand-radius);
+    background: var(--brand-white);
+    color: var(--brand-navy);
+    font: 400 0.9375rem / 1.2 var(--brand-font-display);
+    transition: border-color 0.18s ease;
+  }
+
+  .brand-contact__form textarea {
+    line-height: 1.55;
+    resize: vertical;
+  }
+
+  .brand-contact__form :is(input, select, textarea):focus {
+    border-color: var(--brand-navy);
+    outline: none;
+  }
+
+  .brand-contact__form :is(input, textarea)[aria-invalid='true'] {
+    border-color: var(--brand-error);
+  }
+
+  /* The arrow is drawn here because the native one cannot be styled. */
+  .brand-contact__select {
+    position: relative;
+    display: block;
+  }
+
+  .brand-contact__select select {
+    padding-right: 42px;
+    appearance: none;
+    cursor: pointer;
+  }
+
+  .brand-contact__select::after {
+    content: '▾';
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    font: 400 0.8125rem / 1 var(--brand-font-display);
+    color: rgb(var(--brand-navy-rgb) / 0.42);
+  }
+
+  .brand-contact__actions {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+
+  .brand-contact__actions button {
+    padding: 19px 34px;
+    min-height: 48px;
+    border: 0;
+    border-radius: var(--brand-radius);
+    background: var(--brand-navy);
+    color: var(--brand-white);
+    font: var(--brand-type-button);
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color var(--brand-transition);
+  }
+
+  .brand-contact__actions button:hover {
+    background: var(--brand-navy-hover);
+  }
+
+  .brand-contact__error {
+    margin: 0;
+    font: var(--brand-type-label);
+    font-size: 0.65625rem;
+    line-height: 1.5;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--brand-error);
+  }
+
+  .brand-contact__error[hidden] {
+    display: none;
+  }
+
+  /* --- Sent -------------------------------------------------------------- */
+
+  .brand-contact__sent {
+    padding: clamp(1.75rem, 3.4vw, 2.75rem);
+    border-radius: var(--brand-radius);
+    background: var(--brand-bone);
+  }
+
+  .brand-contact__sent-label {
+    margin: 0;
+    font: var(--brand-type-label);
+    font-size: 0.65625rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.45);
+  }
+
+  .brand-contact__sent h2 {
+    margin: 14px 0 0;
+    font: 800 clamp(1.5rem, 2.6vw, 2.125rem) / 1.06 var(--brand-font-display);
+    letter-spacing: -0.028em;
+  }
+
+  .brand-contact__sent-body {
+    margin: 14px 0 0;
+    max-width: 44ch;
+    font: var(--brand-type-body);
+    font-size: 0.96875rem;
+    line-height: 1.6;
+    color: rgb(var(--brand-navy-rgb) / 0.62);
+    text-wrap: pretty;
+  }
+
+  .brand-contact__again {
+    display: inline-block;
+    margin-top: 22px;
+    padding: 15px 24px;
+    border: 1px solid rgb(var(--brand-navy-rgb) / 0.24);
+    border-radius: var(--brand-radius);
+    font: var(--brand-type-button);
+    font-size: 0.6875rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--brand-navy);
+    transition: border-color var(--brand-transition);
+  }
+
+  .brand-contact__again:hover {
+    border-color: var(--brand-navy);
+    color: var(--brand-navy);
+  }
+
+  /* --- Aside ------------------------------------------------------------- */
+
+  .brand-contact__aside {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .brand-contact__aside-label {
+    margin: 0;
+    padding-bottom: 16px;
+    font: var(--brand-type-label);
+    font-size: 0.65625rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.45);
+  }
+
+  .brand-contact__answers {
+    border-top: 1px solid rgb(var(--brand-navy-rgb) / 0.14);
+  }
+
+  .brand-contact__answer {
+    padding: 20px 0;
+    border-bottom: 1px solid rgb(var(--brand-navy-rgb) / 0.14);
+  }
+
+  .brand-contact__answer-title {
+    margin: 0;
+    font: var(--brand-type-button);
+    font-size: 0.78125rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+  }
+
+  .brand-contact__answer-body {
+    margin-top: 11px;
+    font: var(--brand-type-body);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: rgb(var(--brand-navy-rgb) / 0.62);
+    text-wrap: pretty;
+  }
+
+  .brand-contact__answer-body p {
+    margin: 0;
+  }
+
+  .brand-contact__answer a {
+    display: inline-block;
+    margin-top: 13px;
+    font: var(--brand-type-label);
+    font-size: 0.65625rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: rgb(var(--brand-navy-rgb) / 0.6);
+    border-bottom: 1px solid rgb(var(--brand-navy-rgb) / 0.28);
+  }
+
+  .brand-contact__direct {
+    margin-top: 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+  }
+
+  .brand-contact__direct .brand-contact__aside-label {
+    padding-bottom: 0;
+  }
+
+  .brand-contact__email {
+    align-self: flex-start;
+    font: 400 0.96875rem / 1.4 var(--brand-font-display);
+    color: var(--brand-navy);
+    text-decoration: none;
+    border-bottom: 1px solid rgb(var(--brand-navy-rgb) / 0.28);
+  }
+
+  .brand-contact__note {
+    margin: 0;
+    font: 400 0.71875rem / 1.6 var(--brand-font-mono);
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.45);
+  }
+
+  .brand-contact__note--spaced {
+    margin-top: 15px;
+  }
+
+  @media screen and (min-width: 560px) {
+    .brand-contact__pair {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media screen and (min-width: 900px) {
+    .brand-contact__cols {
+      grid-template-columns: 1.35fr 1fr;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Contact",
+  "tag": "div",
+  "class": "brand-contact-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "crumb_root",
+      "label": "Breadcrumb root",
+      "default": "SUPPORT"
+    },
+    {
+      "type": "text",
+      "id": "crumb_current",
+      "label": "Breadcrumb current",
+      "default": "CONTACT"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "CONTACT"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Write to us."
+    },
+    {
+      "type": "textarea",
+      "id": "intro",
+      "label": "Intro",
+      "default": "Orders, sizing, returns, or anything about the designs. One message is enough — no ticket numbers, no bots."
+    },
+    {
+      "type": "header",
+      "content": "Form"
+    },
+    {
+      "type": "text",
+      "id": "name_label",
+      "label": "Name field",
+      "default": "NAME"
+    },
+    {
+      "type": "text",
+      "id": "name_placeholder",
+      "label": "Name placeholder",
+      "default": "Full name"
+    },
+    {
+      "type": "text",
+      "id": "email_label",
+      "label": "Email field",
+      "default": "EMAIL"
+    },
+    {
+      "type": "text",
+      "id": "email_placeholder",
+      "label": "Email placeholder",
+      "default": "you@email.com"
+    },
+    {
+      "type": "text",
+      "id": "topic_label",
+      "label": "Topic field",
+      "default": "TOPIC"
+    },
+    {
+      "type": "textarea",
+      "id": "topics",
+      "label": "Topics",
+      "info": "One per line.",
+      "default": "Order & delivery\nReturns & exchanges\nSizing & fit\nWholesale & press\nSomething else"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_order_field",
+      "label": "Ask for an order number",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "order_label",
+      "label": "Order field",
+      "default": "ORDER NUMBER"
+    },
+    {
+      "type": "text",
+      "id": "optional_label",
+      "label": "Optional marker",
+      "default": "— OPTIONAL"
+    },
+    {
+      "type": "text",
+      "id": "order_placeholder",
+      "label": "Order placeholder",
+      "default": "e.g. RMG-1042"
+    },
+    {
+      "type": "text",
+      "id": "message_label",
+      "label": "Message field",
+      "default": "MESSAGE"
+    },
+    {
+      "type": "text",
+      "id": "message_placeholder",
+      "label": "Message placeholder",
+      "default": "Tell us what you need."
+    },
+    {
+      "type": "text",
+      "id": "submit_label",
+      "label": "Button",
+      "default": "SEND MESSAGE"
+    },
+    {
+      "type": "text",
+      "id": "error_message",
+      "label": "Error message",
+      "default": "Add your name, a valid email and a message."
+    },
+    {
+      "type": "header",
+      "content": "After sending"
+    },
+    {
+      "type": "text",
+      "id": "sent_label",
+      "label": "Label",
+      "default": "MESSAGE SENT"
+    },
+    {
+      "type": "text",
+      "id": "sent_heading",
+      "label": "Heading",
+      "default": "Got it."
+    },
+    {
+      "type": "textarea",
+      "id": "sent_body",
+      "label": "Body",
+      "default": "We read every message ourselves and reply within 1–24 hours."
+    },
+    {
+      "type": "text",
+      "id": "sent_action",
+      "label": "Write another",
+      "default": "WRITE ANOTHER"
+    },
+    {
+      "type": "header",
+      "content": "Side column"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_answers",
+      "label": "Show answered already",
+      "default": true,
+      "info": "Delivery and returns copy is edited in theme settings, shared with the product page."
+    },
+    {
+      "type": "text",
+      "id": "answers_label",
+      "label": "Heading",
+      "default": "ANSWERED ALREADY"
+    },
+    {
+      "type": "text",
+      "id": "shipping_link",
+      "label": "Shipping link",
+      "default": "SHIPPING POLICY"
+    },
+    {
+      "type": "text",
+      "id": "returns_link",
+      "label": "Returns link",
+      "default": "RETURN POLICY"
+    },
+    {
+      "type": "text",
+      "id": "direct_label",
+      "label": "Direct email heading",
+      "default": "OR EMAIL DIRECTLY"
+    },
+    {
+      "type": "text",
+      "id": "email_address",
+      "label": "Email address",
+      "default": "support@reimaginedstore.com"
+    },
+    {
+      "type": "text",
+      "id": "reply_window",
+      "label": "Reply window",
+      "default": "REPLIES WITHIN 1–24 HOURS"
+    },
+    {
+      "type": "text",
+      "id": "origin_note",
+      "label": "Shipping note",
+      "default": "SHIPPING FROM SAUDI ARABIA · SAR"
+    }
+  ],
+  "presets": [{ "name": "Contact" }]
+}
+{% endschema %}
