@@ -36,13 +36,7 @@
     <div class="brand-footer__utility">
       {%- if section.settings.show_payment_marks -%}
         <div class="brand-footer__payments">
-          {%- assign marks = 'visa,mastercard,mada,applepay,tabby,tamara' | split: ',' -%}
-          {%- for mark in marks -%}
-            {%- assign mark_asset = 'brand-pay-' | append: mark | append: '.png' -%}
-            <span class="brand-footer__payment">
-              <img src="{{ mark_asset | asset_url }}" alt="{{ mark }}" loading="lazy">
-            </span>
-          {%- endfor -%}
+          {% render 'brand-payment-marks' %}
         </div>
       {%- endif -%}
 
@@ -132,28 +126,6 @@
   .brand-footer__payments {
     max-width: var(--brand-max-width);
     margin: 0 auto 22px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    align-items: center;
-  }
-
-  .brand-footer__payment {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 30px;
-    padding-inline: 9px;
-    border: 1px solid rgb(var(--brand-navy-rgb) / 0.14);
-    border-radius: 3px;
-    background: var(--brand-white);
-  }
-
-  .brand-footer__payment img {
-    display: block;
-    height: 22px;
-    width: auto;
-    object-fit: contain;
   }
 
   .brand-footer__meta {

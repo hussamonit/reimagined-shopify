@@ -1,5 +1,5 @@
 import { Component } from '@theme/component';
-import { CartLinesUpdateEvent } from '@shopify/events';
+import { addToCart } from '@theme/brand-cart';
 
 /**
  * Adding to the bag from outside a product page.
@@ -9,15 +9,6 @@ import { CartLinesUpdateEvent } from '@shopify/events';
  * and a separate `[data-add]` button does the adding, which is the same
  * two-step the product page uses.
  *
- * Deliberately raises the same CartLinesUpdateEvent that Horizon's own product
- * form raises, with a promise resolved once the cart has been re-read. That is
- * what the cart drawer, the cart icon and our own "CART (n)" all listen to, so
- * adding this way keeps every one of them in step without touching any of them.
- */
-
-const BUSY = 'is-adding';
-
-/**
  * @typedef {object} Refs
  * @property {HTMLButtonElement} [addButton] - The separate add button, in select mode.
  * @property {HTMLElement} [addLabel] - Text inside that button.
@@ -27,6 +18,8 @@ const BUSY = 'is-adding';
 class BrandQuickAdd extends Component {
   /** @type {string | null} */
   #selected = null;
+
+  #busy = false;
 
   connectedCallback() {
     super.connectedCallback();
@@ -80,54 +73,17 @@ class BrandQuickAdd extends Component {
    * @param {string} variantId
    */
   async #add(button, variantId) {
-    if (!variantId || this.classList.contains(BUSY)) return;
+    if (!variantId || this.#busy) return;
 
-    this.classList.add(BUSY);
+    this.#busy = true;
     button.disabled = true;
 
-    const deferred = CartLinesUpdateEvent.createPromise();
-
-    this.dispatchEvent(
-      new CartLinesUpdateEvent({
-        action: 'add',
-        context: 'product',
-        lines: [{ merchandiseId: variantId, quantity: 1 }],
-        promise: deferred.promise,
-      })
-    );
-
     try {
-      const response = await fetch(Theme.routes.cart_add_url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ items: [{ id: Number(variantId), quantity: 1 }] }),
-      });
-
-      const result = await response.json();
-
-      // The cart API answers 200 with a `status` field when it refuses.
-      if (result.status) throw new Error(result.description || result.message || 'Add to cart failed');
-
-      const cart = await fetch(`${Theme.routes.cart_url}.json`, {
-        headers: { Accept: 'application/json' },
-        credentials: 'same-origin',
-      }).then((cartResponse) => cartResponse.json());
-
-      deferred.resolve({
-        cart: CartLinesUpdateEvent.createCartFromAjaxResponse(cart),
-        detail: {
-          items: cart.items,
-          source: 'brand-quick-add',
-          sourceId: this.id,
-          itemCount: 1,
-          didError: false,
-        },
-      });
+      await addToCart({ variantId, target: this, source: 'brand-quick-add' });
     } catch (error) {
-      deferred.reject(error);
       console.error('[brand-quick-add]', error);
     } finally {
-      this.classList.remove(BUSY);
+      this.#busy = false;
       button.disabled = false;
     }
   }

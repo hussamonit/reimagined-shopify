@@ -1,0 +1,979 @@
+{%- liquid
+  assign accent = product.metafields.jersey.accent.value
+  assign tagline = product.metafields.jersey.tagline.value | strip_html | strip
+
+  comment
+    Position among the run, shown as "02 / 05". Worked out from the collection
+    rather than stored, so adding a sixth jersey needs nothing changed.
+  endcomment
+  assign ordering = section.settings.ordering_collection
+  if ordering == blank
+    assign ordering = collections.all
+  endif
+  assign position = 0
+  for item in ordering.products
+    if item.id == product.id
+      assign position = forloop.index
+      break
+    endif
+  endfor
+  assign run_total = ordering.products_count
+
+  comment
+    Default view names, used in media order. A product with more renders keeps
+    going past the list — every render the owner uploads is shown, and the alt
+    text on an image wins over the default if it is set.
+  endcomment
+  assign default_views = section.settings.view_names | split: ','
+-%}
+
+<nav class="brand-crumbs" aria-label="Breadcrumb">
+  <a href="{{ routes.all_products_collection_url }}">{{ section.settings.crumb_root }}</a>
+  <span aria-hidden="true">/</span>
+  <span aria-current="page">{{ product.title }}</span>
+</nav>
+
+<section class="brand-product">
+  <brand-product-gallery class="brand-product__media">
+    <div class="brand-product__frame">
+      {%- for media in product.media -%}
+        {%- liquid
+          if media.media_type != 'image'
+            continue
+          endif
+
+          assign default_name = default_views[forloop.index0] | default: 'VIEW' | strip
+          assign view_name = media.alt | default: default_name | strip | upcase
+
+          comment
+            Only the first render is worth fetching eagerly; the rest are behind
+            an arrow or a swipe.
+          endcomment
+          assign view_loading = 'lazy'
+          if forloop.first
+            assign view_loading = 'eager'
+          endif
+        -%}
+        <div
+          class="brand-product__view"
+          ref="views[]"
+          data-view-label="{{ view_name | escape }}"
+          {% unless forloop.first %}
+            hidden
+          {% endunless %}
+        >
+          {{
+            media
+            | image_url: width: 1800
+            | image_tag:
+              width: 900,
+              widths: '450, 700, 900, 1200, 1800',
+              sizes: '(min-width: 900px) 45vw, 100vw',
+              loading: view_loading,
+              alt: product.title
+              | append: ' — '
+              | append: view_name
+          }}
+        </div>
+      {%- else -%}
+        <div class="brand-product__view" ref="views[]" data-view-label="">
+          {{ 'product-apparel-2' | placeholder_svg_tag: 'brand-product__placeholder' }}
+        </div>
+      {%- endfor -%}
+
+      <p class="brand-product__view-label" ref="label"></p>
+
+      {%- if product.media.size > 1 -%}
+        <button type="button" class="brand-product__arrow brand-product__arrow--prev" data-step="-1" aria-label="{{ section.settings.previous_label }}">←</button>
+        <button type="button" class="brand-product__arrow brand-product__arrow--next" data-step="1" aria-label="{{ section.settings.next_label }}">→</button>
+      {%- endif -%}
+    </div>
+
+    {%- if product.media.size > 1 -%}
+      {%- comment -%}
+        The rail scrolls inside itself on a phone. See the note on the grid
+        track below for why that matters.
+      {%- endcomment -%}
+      <div class="brand-product__thumbs">
+        {%- for media in product.media -%}
+          {%- liquid
+            if media.media_type != 'image'
+              continue
+            endif
+
+            assign default_name = default_views[forloop.index0] | default: 'VIEW' | strip
+            assign view_name = media.alt | default: default_name | strip | upcase
+          -%}
+          <button
+            type="button"
+            class="brand-product__thumb"
+            ref="thumbs[]"
+            data-view-index="{{ forloop.index0 }}"
+            aria-current="{{ forloop.first }}"
+            aria-label="{{ view_name }}"
+          >
+            {{ media | image_url: width: 180 | image_tag: width: 90, loading: 'lazy', alt: '' }}
+          </button>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </brand-product-gallery>
+
+  <brand-product-buy class="brand-product__buy">
+    <div class="brand-product__buy-inner">
+      <div class="brand-product__top">
+        <p class="brand-product__index">
+          {%- if accent -%}
+            <span class="brand-product__dot" style="background: {{ accent }}"></span>
+          {%- endif -%}
+          {{ position | prepend: '0' | slice: -2, 2 }} / {{ run_total | prepend: '0' | slice: -2, 2 }}
+        </p>
+        {% render 'brand-stock-state', product: product, style: 'pill' %}
+      </div>
+
+      <h1 class="brand-product__title">{{ product.title }}</h1>
+
+      {%- if tagline != blank -%}
+        <p class="brand-product__tagline">{{ tagline }}</p>
+      {%- endif -%}
+
+      <p class="brand-product__price">{{ product.price | money }}</p>
+
+      <p class="brand-product__size-label">{{ section.settings.size_label }}</p>
+
+      <div class="brand-product__sizes">
+        {%- for variant in product.variants -%}
+          <button
+            type="button"
+            class="brand-product__size"
+            ref="sizes[]"
+            data-variant-id="{{ variant.id }}"
+            data-available="{{ variant.available }}"
+            data-size-label="{% render 'brand-size-label', label: variant.title %}"
+            aria-pressed="false"
+            aria-label="{{ variant.title }}"
+          >
+            {%- render 'brand-size-label', label: variant.title -%}
+          </button>
+        {%- endfor -%}
+      </div>
+
+      {%- comment -%}
+        Shown only once a sold-out size is picked. Shopify has no back-in-stock
+        of its own, so this collects the address as a tagged customer — enough
+        to reach people by hand, and the tag is what a dedicated app would read
+        if one is added later.
+      {%- endcomment -%}
+      <div class="brand-product__notify" ref="notify" hidden>
+        {%- form 'customer', novalidate: 'novalidate' -%}
+          <input type="hidden" name="contact[tags]" value="" ref="notifyTag" data-prefix="back-in-stock:{{ product.handle }}">
+
+          <p class="brand-product__notify-label">
+            {{ section.settings.notify_label }} <span ref="notifySize"></span>
+          </p>
+          <p class="brand-product__notify-body">{{ section.settings.notify_body }}</p>
+
+          <div class="brand-product__notify-form">
+            <label class="visually-hidden" for="brand-notify-email">{{ section.settings.notify_placeholder }}</label>
+            <input
+              id="brand-notify-email"
+              type="email"
+              name="contact[email]"
+              autocomplete="email"
+              required
+              placeholder="{{ section.settings.notify_placeholder | escape }}"
+            >
+            <button type="submit">{{ section.settings.notify_button }}</button>
+          </div>
+
+          {%- if form.posted_successfully? -%}
+            <p class="brand-product__notify-done">{{ section.settings.notify_done }}</p>
+          {%- endif -%}
+        {%- endform -%}
+      </div>
+
+      <button type="button" class="brand-product__add" data-add ref="addButton">
+        <span ref="addLabel" data-ready-label="{{ section.settings.add_label | escape }}">
+          {{- section.settings.select_label -}}
+        </span>
+      </button>
+
+      <p class="brand-product__hint" ref="hint" hidden>{{ section.settings.size_hint }}</p>
+
+      <div class="brand-product__payments">{% render 'brand-payment-marks' %}</div>
+
+      {%- if section.settings.terms != blank -%}
+        <p class="brand-product__terms">{{ section.settings.terms }}</p>
+      {%- endif -%}
+
+      {%- if section.blocks.size > 0 -%}
+        <div class="brand-acc">
+          {%- for block in section.blocks -%}
+            {%- liquid
+              assign body = block.settings.body
+              if block.type == 'description'
+                assign body = product.description
+              endif
+            -%}
+            {%- if body != blank -%}
+              {%- comment -%}
+                A shared name makes the browser close the others — an exclusive
+                accordion with no script behind it.
+              {%- endcomment -%}
+              <details class="brand-acc__row" name="brand-product-accordion" {{ block.shopify_attributes }}>
+                <summary>
+                  <span>{{ block.settings.title }}</span>
+                  <span class="brand-acc__mark" aria-hidden="true"></span>
+                </summary>
+                <div class="brand-acc__body">{{ body }}</div>
+              </details>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- comment -%}
+      Follows the buy column on phones once the real one has scrolled away.
+    {%- endcomment -%}
+    <div class="brand-product__bar" ref="bar">
+      <div class="brand-product__bar-text">
+        <p class="brand-product__bar-title">{{ product.title }}</p>
+        <p class="brand-product__bar-meta">{{ product.price | money }}</p>
+      </div>
+      <button type="button" class="brand-product__bar-button" data-add ref="barButton">
+        <span ref="barLabel" data-ready-label="{{ section.settings.add_label | escape }}">
+          {{- section.settings.select_label -}}
+        </span>
+      </button>
+    </div>
+  </brand-product-buy>
+</section>
+
+{% stylesheet %}
+  .brand-crumbs {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 15px var(--brand-gutter);
+    border-bottom: var(--brand-rule);
+    font: var(--brand-type-label);
+    font-size: 0.65625rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.42);
+  }
+
+  .brand-crumbs a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .brand-crumbs [aria-current] {
+    color: rgb(var(--brand-navy-rgb) / 0.72);
+  }
+
+  .brand-product {
+    display: grid;
+
+    /* minmax(0,1fr), never a bare 1fr. A bare 1fr is minmax(auto,1fr), and the
+       thumb rail's min-content — seven thumbs plus gaps and gutters, over
+       500px — would widen the track past the phone and scroll the whole page
+       sideways. Capped, the rail scrolls inside itself instead. */
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0 0 30px;
+    border-bottom: var(--brand-rule);
+  }
+
+  .brand-product__media {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .brand-product__frame {
+    position: relative;
+
+    /* A 9:16 box at phone width stands about 700px tall — taller than the
+       screen, so the shirt had to be scrolled to be seen. The renders carry
+       enough empty sky above and below the garment to absorb a shorter crop. */
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    background: var(--brand-bone);
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .brand-product__view {
+    position: absolute;
+    inset: 0;
+  }
+
+  .brand-product__view[hidden] {
+    display: none;
+  }
+
+  .brand-product__view img,
+  .brand-product__placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .brand-product__view-label {
+    position: absolute;
+    left: 14px;
+    top: 14px;
+    z-index: var(--layer-raised);
+    margin: 0;
+    padding: 7px 12px;
+    border-radius: var(--brand-radius-pill);
+    background: rgb(255 255 255 / 0.92);
+    font: var(--brand-type-label);
+    font-size: 0.625rem;
+    letter-spacing: 0.14em;
+    color: rgb(var(--brand-navy-rgb) / 0.6);
+  }
+
+  .brand-product__arrow {
+    position: absolute;
+    top: 50%;
+    z-index: var(--layer-heightened);
+    transform: translateY(-50%);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border: 0;
+    background: none;
+    color: var(--brand-navy);
+    font: 400 1.375rem / 1 var(--brand-font-display);
+    cursor: pointer;
+    transition: opacity var(--brand-transition);
+  }
+
+  .brand-product__arrow:hover {
+    opacity: 0.55;
+  }
+
+  .brand-product__arrow--prev {
+    left: 12px;
+  }
+
+  .brand-product__arrow--next {
+    right: 12px;
+  }
+
+  .brand-product__thumbs {
+    display: flex;
+    gap: 8px;
+    padding-inline: var(--brand-gutter);
+    overflow-x: auto;
+    min-width: 0;
+    max-width: 100%;
+    scrollbar-width: thin;
+  }
+
+  .brand-product__thumb {
+    position: relative;
+    flex: none;
+    width: 58px;
+    aspect-ratio: 3 / 4;
+    padding: 0;
+    border: 1px solid rgb(var(--brand-navy-rgb) / 0.16);
+    background: var(--brand-bone);
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color var(--brand-transition);
+  }
+
+  .brand-product__thumb[aria-current='true'] {
+    border-color: var(--brand-navy);
+  }
+
+  .brand-product__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .brand-product__buy {
+    display: block;
+    padding: 30px var(--brand-gutter) 0;
+    min-width: 0;
+  }
+
+  .brand-product__buy-inner {
+    width: 100%;
+    max-width: 780px;
+  }
+
+  .brand-product__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .brand-product__index {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin: 0;
+    font: var(--brand-type-label);
+    font-size: 0.71875rem;
+    letter-spacing: 0.14em;
+    color: rgb(var(--brand-navy-rgb) / 0.5);
+  }
+
+  .brand-product__dot {
+    flex: none;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgb(var(--brand-navy-rgb) / 0.18);
+  }
+
+  .brand-product__title {
+    margin: 20px 0 0;
+    font: 800 clamp(2.125rem, 4.4vw, 3.625rem) / 0.98 var(--brand-font-display);
+    letter-spacing: -0.03em;
+  }
+
+  .brand-product__tagline {
+    margin: 18px 0 0;
+    max-width: 60ch;
+    font: var(--brand-type-body);
+    font-size: 1rem;
+    line-height: 1.6;
+    color: rgb(var(--brand-navy-rgb) / 0.66);
+    text-wrap: pretty;
+  }
+
+  .brand-product__price {
+    margin: 26px 0 0;
+    font: 600 1.25rem / 1 var(--brand-font-display);
+  }
+
+  .brand-product__size-label {
+    margin: 28px 0 0;
+    font: var(--brand-type-label);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.5);
+  }
+
+  .brand-product__sizes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 13px;
+  }
+
+  .brand-product__size {
+    padding: 12px 21px;
+    border: 1px solid rgb(var(--brand-navy-rgb) / 0.24);
+    border-radius: var(--brand-radius);
+    background: var(--brand-white);
+    color: var(--brand-navy);
+    font: var(--brand-type-label);
+    font-size: 0.75rem;
+    line-height: 1;
+    letter-spacing: 0;
+    cursor: pointer;
+    transition:
+      border-color var(--brand-transition),
+      background-color var(--brand-transition),
+      color var(--brand-transition);
+  }
+
+  .brand-product__size:hover {
+    border-color: var(--brand-navy);
+  }
+
+  .brand-product__size[aria-pressed='true'] {
+    background: var(--brand-navy);
+    border-color: var(--brand-navy);
+    color: var(--brand-white);
+  }
+
+  /* Sold-out sizes stay pressable — that is how the waiting list is reached. */
+  .brand-product__size[data-available='false'] {
+    color: rgb(var(--brand-navy-rgb) / 0.4);
+    text-decoration: line-through;
+  }
+
+  .brand-product__notify {
+    margin-top: 20px;
+    padding: 18px;
+    border-radius: var(--brand-radius);
+    background: var(--brand-bone);
+  }
+
+  .brand-product__notify[hidden] {
+    display: none;
+  }
+
+  .brand-product__notify-label {
+    margin: 0;
+    font: var(--brand-type-label);
+    font-size: 0.65625rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.5);
+  }
+
+  .brand-product__notify-body {
+    margin: 10px 0 14px;
+    font: var(--brand-type-body-sm);
+    font-size: 0.84375rem;
+    color: rgb(var(--brand-navy-rgb) / 0.6);
+    text-wrap: pretty;
+  }
+
+  .brand-product__notify-form {
+    display: flex;
+    gap: 8px;
+  }
+
+  .brand-product__notify-form input {
+    flex: 1;
+    min-width: 0;
+    padding: 14px 16px;
+    border: 1px solid rgb(var(--brand-navy-rgb) / 0.24);
+    border-radius: var(--brand-radius);
+    background: var(--brand-white);
+    color: var(--brand-navy);
+    font: 400 0.875rem / 1 var(--brand-font-display);
+  }
+
+  .brand-product__notify-form button {
+    padding: 14px 24px;
+    border: 0;
+    border-radius: var(--brand-radius);
+    background: var(--brand-navy);
+    color: var(--brand-white);
+    font: var(--brand-type-button);
+    font-size: 0.6875rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color var(--brand-transition);
+  }
+
+  .brand-product__notify-form button:hover {
+    background: var(--brand-navy-hover);
+  }
+
+  .brand-product__notify-done {
+    margin: 12px 0 0;
+    font: var(--brand-type-body-sm);
+    color: rgb(var(--brand-navy-rgb) / 0.66);
+  }
+
+  .brand-product__add {
+    width: 100%;
+    margin-top: 24px;
+    padding: 19px 30px;
+    border: 0;
+    border-radius: var(--brand-radius);
+    background: var(--brand-navy);
+    color: var(--brand-white);
+    font: var(--brand-type-button);
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color var(--brand-transition);
+  }
+
+  .brand-product__add:hover {
+    background: var(--brand-navy-hover);
+  }
+
+  .brand-product__add[hidden] {
+    display: none;
+  }
+
+  .brand-product__hint {
+    margin: 11px 0 0;
+    font: var(--brand-type-label);
+    font-size: 0.65625rem;
+    line-height: 1.5;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--brand-error);
+  }
+
+  .brand-product__hint[hidden] {
+    display: none;
+  }
+
+  .brand-product__payments {
+    margin-top: 16px;
+  }
+
+  .brand-product__terms {
+    margin: 14px 0 0;
+    font: 400 0.71875rem / 1.6 var(--brand-font-mono);
+    color: rgb(var(--brand-navy-rgb) / 0.45);
+  }
+
+  /* --- Accordion -------------------------------------------------------- */
+
+  .brand-acc {
+    margin-top: 24px;
+    border-top: 1px solid rgb(var(--brand-navy-rgb) / 0.14);
+  }
+
+  .brand-acc__row {
+    border-bottom: 1px solid rgb(var(--brand-navy-rgb) / 0.14);
+  }
+
+  .brand-acc__row summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 18px 0;
+    cursor: pointer;
+    list-style: none;
+    font: var(--brand-type-button);
+    font-size: 0.78125rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+  }
+
+  .brand-acc__row summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .brand-acc__mark {
+    flex: none;
+    font: 400 1.125rem / 1 var(--brand-font-display);
+    color: rgb(var(--brand-navy-rgb) / 0.42);
+  }
+
+  .brand-acc__mark::before {
+    content: '+';
+  }
+
+  .brand-acc__row[open] .brand-acc__mark::before {
+    content: '−';
+  }
+
+  .brand-acc__body {
+    padding-bottom: 20px;
+    font: var(--brand-type-body);
+    font-size: 0.96875rem;
+    line-height: 1.62;
+    color: rgb(var(--brand-navy-rgb) / 0.62);
+    text-wrap: pretty;
+  }
+
+  .brand-acc__body :is(p, ul, ol):first-child {
+    margin-top: 0;
+  }
+
+  .brand-acc__body ul {
+    margin: 13px 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .brand-acc__body li {
+    display: flex;
+    gap: 11px;
+  }
+
+  .brand-acc__body li::before {
+    content: '';
+    flex: none;
+    width: 4px;
+    height: 4px;
+    margin-top: 8px;
+    border-radius: 50%;
+    background: rgb(var(--brand-navy-rgb) / 0.35);
+  }
+
+  /* Opens instantly where this is not supported, which is the right fallback. */
+  @supports selector(details::details-content) {
+    .brand-acc__row::details-content {
+      block-size: 0;
+      overflow: hidden;
+      transition:
+        block-size 0.32s ease,
+        content-visibility 0.32s allow-discrete;
+      interpolate-size: allow-keywords;
+    }
+
+    .brand-acc__row[open]::details-content {
+      block-size: auto;
+    }
+  }
+
+  /* --- Sticky phone bar -------------------------------------------------- */
+
+  .brand-product__bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--layer-sticky);
+    display: none;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+    background: rgb(255 255 255 / 0.96);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgb(var(--brand-navy-rgb) / 0.14);
+    transform: translateY(100%);
+    transition: transform 0.28s var(--brand-ease-reveal);
+  }
+
+  .brand-product__bar.is-visible {
+    transform: none;
+  }
+
+  .brand-product__bar-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .brand-product__bar-title {
+    margin: 0;
+    font: 700 0.875rem / 1.2 var(--brand-font-display);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .brand-product__bar-meta {
+    margin: 4px 0 0;
+    font: var(--brand-type-label);
+    font-size: 0.65625rem;
+    letter-spacing: 0.12em;
+    color: rgb(var(--brand-navy-rgb) / 0.45);
+  }
+
+  .brand-product__bar-button {
+    flex: none;
+    min-height: 48px;
+    padding: 16px 22px;
+    border: 0;
+    border-radius: var(--brand-radius);
+    background: var(--brand-navy);
+    color: var(--brand-white);
+    font: var(--brand-type-button);
+    font-size: 0.71875rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  @media screen and (max-width: 759px) {
+    .brand-product__bar {
+      display: flex;
+    }
+
+    /* Room for the bar, so it never covers the last of the accordion. */
+    .brand-product__buy-inner {
+      padding-bottom: 78px;
+    }
+
+    .brand-product__size {
+      min-height: var(--brand-tap-target);
+    }
+  }
+
+  @media screen and (min-width: 900px) {
+    .brand-product {
+      grid-template-columns: 1fr 1fr;
+      padding: clamp(1rem, 3vw, 3.75rem) clamp(2.25rem, 7.5vw, 9.375rem) clamp(1.875rem, 4vw, 4rem);
+    }
+
+    /* Height-driven, so the tall renders cannot tower over the buy column. */
+    .brand-product__frame {
+      height: min(80vh, 900px);
+      width: auto;
+      aspect-ratio: 9 / 16;
+      max-width: 100%;
+    }
+
+    .brand-product__thumb {
+      aspect-ratio: 9 / 16;
+    }
+
+    .brand-product__thumbs {
+      padding-inline: 0;
+      overflow-x: visible;
+    }
+
+    .brand-product__buy {
+      padding: 0 0 0 clamp(1.5rem, 3.4vw, 4rem);
+    }
+
+    /* Only offered where there is a pointer to hover with. */
+    .brand-product__frame:hover .brand-product__arrow {
+      display: flex;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Product",
+  "tag": "div",
+  "class": "brand-product-section",
+  "enabled_on": { "templates": ["product"] },
+  "settings": [
+    {
+      "type": "text",
+      "id": "crumb_root",
+      "label": "Breadcrumb root",
+      "default": "ALL JERSEYS"
+    },
+    {
+      "type": "collection",
+      "id": "ordering_collection",
+      "label": "Collection that sets the numbering",
+      "info": "Used for the 02 / 05 counter. Defaults to all products."
+    },
+    {
+      "type": "text",
+      "id": "view_names",
+      "label": "Default view names",
+      "info": "Comma separated, in media order. An image's alt text overrides its name here.",
+      "default": "FRONT, BACK, DETAIL, SIGNATURE"
+    },
+    {
+      "type": "text",
+      "id": "previous_label",
+      "label": "Previous view",
+      "default": "Previous view"
+    },
+    {
+      "type": "text",
+      "id": "next_label",
+      "label": "Next view",
+      "default": "Next view"
+    },
+    {
+      "type": "header",
+      "content": "Buying"
+    },
+    {
+      "type": "text",
+      "id": "size_label",
+      "label": "Size heading",
+      "default": "Size"
+    },
+    {
+      "type": "text",
+      "id": "select_label",
+      "label": "Button before a size is chosen",
+      "default": "SELECT SIZE"
+    },
+    {
+      "type": "text",
+      "id": "add_label",
+      "label": "Button once a size is chosen",
+      "default": "ADD TO BAG"
+    },
+    {
+      "type": "text",
+      "id": "size_hint",
+      "label": "Nudge when no size is chosen",
+      "default": "PICK A SIZE FIRST"
+    },
+    {
+      "type": "text",
+      "id": "terms",
+      "label": "Delivery line",
+      "default": "2–7 business days in Saudi Arabia · Free over 200 SAR · 3-day returns"
+    },
+    {
+      "type": "header",
+      "content": "Sold-out sizes"
+    },
+    {
+      "type": "paragraph",
+      "content": "Collects the address as a customer tagged with the jersey and size. A dedicated back-in-stock app can read the same tag later."
+    },
+    {
+      "type": "text",
+      "id": "notify_label",
+      "label": "Panel heading",
+      "default": "TELL ME WHEN IT IS BACK —"
+    },
+    {
+      "type": "textarea",
+      "id": "notify_body",
+      "label": "Panel body",
+      "default": "Runs are kept small. Leave an email and you'll hear first if this size comes back."
+    },
+    {
+      "type": "text",
+      "id": "notify_placeholder",
+      "label": "Field placeholder",
+      "default": "Email address"
+    },
+    {
+      "type": "text",
+      "id": "notify_button",
+      "label": "Button",
+      "default": "NOTIFY ME"
+    },
+    {
+      "type": "text",
+      "id": "notify_done",
+      "label": "Confirmation",
+      "default": "You're on the list for this size."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "description",
+      "name": "Description",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "DESCRIPTION"
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "name": "Accordion row",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "DELIVERY"
+        },
+        {
+          "type": "richtext",
+          "id": "body",
+          "label": "Body"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

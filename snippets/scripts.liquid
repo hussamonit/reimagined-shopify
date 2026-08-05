@@ -35,7 +35,8 @@
       "@theme/fly-to-cart": "{{ 'fly-to-cart.js' | asset_url }}",
       "@theme/scroll-container": "{{ 'scroll-container.js' | asset_url }}",
       "@theme/theme-drawer": "{{ 'theme-drawer.js' | asset_url }}",
-      "@theme/brand-scroll": "{{ 'brand-scroll.js' | asset_url }}"
+      "@theme/brand-scroll": "{{ 'brand-scroll.js' | asset_url }}",
+      "@theme/brand-cart": "{{ 'brand-cart.js' | asset_url }}"
     }
   }
 </script>
@@ -87,6 +88,13 @@
     src="{{ 'brand-collection.js' | asset_url }}"
     type="module"
     fetchpriority="low"
+  ></script>
+{%- endif -%}
+
+{%- if template.name == 'product' -%}
+  <script
+    src="{{ 'brand-product.js' | asset_url }}"
+    type="module"
   ></script>
 {%- endif -%}
 

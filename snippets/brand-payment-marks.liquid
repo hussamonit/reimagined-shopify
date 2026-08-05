@@ -1,0 +1,47 @@
+{% doc %}
+  The row of accepted payment marks.
+
+  Shared by the footer and the product page's buy column. The set is fixed to
+  what the store accepts rather than read from Shopify, because the regional
+  methods here — mada, Tabby, Tamara — are not in Shopify's own icon set.
+
+  @example
+  {% render 'brand-payment-marks' %}
+{% enddoc %}
+
+<div class="brand-payments">
+  {%- assign marks = 'visa,mastercard,mada,applepay,tabby,tamara' | split: ',' -%}
+  {%- for mark in marks -%}
+    {%- assign mark_asset = 'brand-pay-' | append: mark | append: '.png' -%}
+    <span class="brand-payments__mark">
+      <img src="{{ mark_asset | asset_url }}" alt="{{ mark }}" loading="lazy" width="34" height="22">
+    </span>
+  {%- endfor -%}
+</div>
+
+{% stylesheet %}
+  .brand-payments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .brand-payments__mark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    padding-inline: 9px;
+    border: 1px solid rgb(var(--brand-navy-rgb) / 0.14);
+    border-radius: 3px;
+    background: var(--brand-white);
+  }
+
+  .brand-payments__mark img {
+    display: block;
+    height: 22px;
+    width: auto;
+    object-fit: contain;
+  }
+{% endstylesheet %}
