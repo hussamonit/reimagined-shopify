@@ -17,7 +17,14 @@
 
 {%- liquid
   assign year = product.metafields.jersey.year.value
+
+  comment
+    Accent is the dot — the jersey's own colour. The year behind the tile can
+    need a different one: Saudi '22's dot is off-white, which would be invisible
+    as a tint on white, so its year carries the shirt's green instead.
+  endcomment
   assign accent = product.metafields.jersey.accent.value
+  assign year_tint = product.metafields.jersey.year_tint.value | default: accent
 
   comment
     The line under the name is the moment — "Lusail. 2–1." — not the product
@@ -28,16 +35,16 @@
   assign blurb = product.metafields.jersey.tagline.value | strip_html | strip
 
   comment
-    `render` does not inherit the caller's scope, so forloop is out of reach —
-    the position has to be handed in.
+    Only the reveal stagger — the number shown on the tile is the jersey's place
+    in the run, not its place in this grid. `render` does not inherit the
+    caller's scope, so the grid position has to be handed in.
   endcomment
-  assign position = index | default: 1
-  assign stagger = position | minus: 1 | times: 90
+  assign stagger = index | default: 1 | minus: 1 | times: 90
 -%}
 
 <article class="brand-tile" data-reveal="{{ stagger }}">
   {%- if year != blank -%}
-    <span class="brand-tile__year" {% if accent %}style="color: {{ accent }}"{% endif %} aria-hidden="true">
+    <span class="brand-tile__year" {% if year_tint %}style="color: {{ year_tint }}"{% endif %} aria-hidden="true">
       {{- year -}}
     </span>
   {%- endif -%}
@@ -91,7 +98,7 @@
       {%- if accent -%}
         <span class="brand-tile__dot" style="background: {{ accent }}"></span>
       {%- endif -%}
-      {{ position | prepend: '0' | slice: -2, 2 }}
+      {%- render 'brand-run-number', product: product -%}
     </span>
 
     {%- if compact -%}

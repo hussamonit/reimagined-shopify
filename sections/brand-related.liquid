@@ -15,16 +15,12 @@
   assign shown = 0
 -%}
 
-<section class="brand-related">
-  <div class="brand-related__head">
-    <h2>{{ section.settings.heading }}</h2>
-    {%- if section.settings.link_label != blank -%}
-      <a href="{{ routes.all_products_collection_url }}">{{ section.settings.link_label }}</a>
-    {%- endif -%}
-  </div>
-</section>
-
-<div class="brand-grid brand-grid--{{ section.settings.columns }} brand-grid--flush">
+{%- comment -%}
+  Built first so the heading is only drawn if there is something under it — on a
+  store with one jersey this section would otherwise be a title over an empty
+  bordered box.
+{%- endcomment -%}
+{%- capture tiles -%}
   {%- for item in source.products -%}
     {%- if item.id == product.id -%}
       {%- continue -%}
@@ -38,7 +34,20 @@
 
     {%- assign shown = shown | plus: 1 -%}
   {%- endfor -%}
-</div>
+{%- endcapture -%}
+
+{%- if tiles != blank -%}
+  <section class="brand-related">
+    <div class="brand-related__head">
+      <h2>{{ section.settings.heading }}</h2>
+      {%- if section.settings.link_label != blank -%}
+        <a href="{{ routes.all_products_collection_url }}">{{ section.settings.link_label }}</a>
+      {%- endif -%}
+    </div>
+  </section>
+
+  <div class="brand-grid brand-grid--{{ section.settings.columns }} brand-grid--flush">{{ tiles }}</div>
+{%- endif -%}
 
 {% stylesheet %}
   .brand-related {

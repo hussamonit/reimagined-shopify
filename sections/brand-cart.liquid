@@ -11,11 +11,11 @@
   assign remaining = free_over | minus: cart.total_price | money
 -%}
 
-<nav class="brand-crumbs" aria-label="Breadcrumb">
-  <a href="{{ routes.all_products_collection_url }}">{{ section.settings.crumb_root }}</a>
-  <span aria-hidden="true">/</span>
-  <span aria-current="page">{{ section.settings.crumb_current }}</span>
-</nav>
+{% render 'brand-breadcrumbs',
+  root: section.settings.crumb_root,
+  root_url: routes.all_products_collection_url,
+  current: section.settings.crumb_current
+%}
 
 <section class="brand-bag">
   <div class="brand-bag__inner">
@@ -346,8 +346,6 @@
   }
 
   .brand-bag__meta {
-    display: flex;
-    align-items: center;
     margin: 0;
     font: var(--brand-type-label);
     font-size: 0.65625rem;

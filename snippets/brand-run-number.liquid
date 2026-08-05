@@ -1,0 +1,37 @@
+{% doc %}
+  A jersey's place in the run, zero padded — 01, 02, and so on.
+
+  Counted from one collection named in theme settings, so a jersey carries the
+  same number on the homepage, the shop page and its own page. Working it out
+  from whichever list happens to be on screen is what let the homepage and the
+  shop disagree: they were counting different collections in different orders.
+
+  Outputs the total instead when `total` is true.
+
+  @param {object} product - The jersey to number.
+  @param {boolean} [total] - Return how many are in the run rather than this one's place.
+
+  @example
+  {% render 'brand-run-number', product: product %}
+{% enddoc %}
+
+{%- liquid
+  assign source = settings.run_collection
+  if source == blank
+    assign source = collections.all
+  endif
+
+  if total
+    assign number = source.products_count
+  else
+    assign number = 0
+    for item in source.products
+      if item.id == product.id
+        assign number = forloop.index
+        break
+      endif
+    endfor
+  endif
+-%}
+
+{{- number | prepend: '0' | slice: -2, 2 -}}

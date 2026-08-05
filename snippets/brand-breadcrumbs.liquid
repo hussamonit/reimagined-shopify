@@ -1,0 +1,55 @@
+{% doc %}
+  The thin trail under the header.
+
+  Shared by the product, cart, contact and size guide pages. It used to be drawn
+  on each of them but styled only inside the product section — which worked only
+  because Shopify bundles every section's CSS together, and would have broken
+  three pages the moment the product section changed.
+
+  @param {string} current - Where the visitor is. Not a link.
+  @param {string} [root] - The step before it.
+  @param {string} [root_url] - Where that step goes. Omit for plain text.
+
+  @example
+  {% render 'brand-breadcrumbs', root: 'ALL JERSEYS', root_url: routes.all_products_collection_url, current: product.title %}
+{% enddoc %}
+
+<nav class="brand-crumbs" aria-label="Breadcrumb">
+  {%- if root != blank -%}
+    {%- if root_url != blank -%}
+      <a href="{{ root_url }}">{{ root }}</a>
+    {%- else -%}
+      <span>{{ root }}</span>
+    {%- endif -%}
+    <span aria-hidden="true">/</span>
+  {%- endif -%}
+  <span aria-current="page">{{ current }}</span>
+</nav>
+
+{% stylesheet %}
+  .brand-crumbs {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 15px var(--brand-gutter);
+    border-bottom: var(--brand-rule);
+    font: var(--brand-type-label);
+    font-size: 0.65625rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.42);
+  }
+
+  .brand-crumbs a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .brand-crumbs a:hover {
+    color: var(--brand-navy);
+  }
+
+  .brand-crumbs [aria-current] {
+    color: rgb(var(--brand-navy-rgb) / 0.72);
+  }
+{% endstylesheet %}

@@ -3,21 +3,22 @@
   assign tagline = product.metafields.jersey.tagline.value | strip_html | strip
 
   comment
-    Position among the run, shown as "02 / 05". Worked out from the collection
-    rather than stored, so adding a sixth jersey needs nothing changed.
+    Counted from the collection named in theme settings, the same one the tiles
+    and the featured panel count from, so a jersey keeps its number everywhere.
   endcomment
-  assign ordering = section.settings.ordering_collection
-  if ordering == blank
-    assign ordering = collections.all
-  endif
-  assign position = 0
-  for item in ordering.products
-    if item.id == product.id
-      assign position = forloop.index
-      break
-    endif
-  endfor
-  assign run_total = ordering.products_count
+  capture run_position
+    render 'brand-run-number', product: product
+  endcapture
+  capture run_total
+    render 'brand-run-number', product: product, total: true
+  endcapture
+
+  comment
+    A capture keeps whatever whitespace the snippet emitted, and these sit
+    either side of a slash.
+  endcomment
+  assign run_position = run_position | strip
+  assign run_total = run_total | strip
 
   comment
     Default view names, used in media order. A product with more renders keeps
@@ -27,11 +28,11 @@
   assign default_views = section.settings.view_names | split: ','
 -%}
 
-<nav class="brand-crumbs" aria-label="Breadcrumb">
-  <a href="{{ routes.all_products_collection_url }}">{{ section.settings.crumb_root }}</a>
-  <span aria-hidden="true">/</span>
-  <span aria-current="page">{{ product.title }}</span>
-</nav>
+{% render 'brand-breadcrumbs',
+  root: section.settings.crumb_root,
+  root_url: routes.all_products_collection_url,
+  current: product.title
+%}
 
 <section class="brand-product">
   <brand-product-gallery class="brand-product__media">
@@ -126,7 +127,7 @@
           {%- if accent -%}
             <span class="brand-product__dot" style="background: {{ accent }}"></span>
           {%- endif -%}
-          {{ position | prepend: '0' | slice: -2, 2 }} / {{ run_total | prepend: '0' | slice: -2, 2 }}
+          {{ run_position }} / {{ run_total }}
         </p>
         {% render 'brand-stock-state', product: product, style: 'pill' %}
       </div>
@@ -271,7 +272,11 @@
         <p class="brand-product__bar-meta">{{ product.price | money }}</p>
       </div>
       <button type="button" class="brand-product__bar-button" data-add ref="barButton">
-        <span ref="barLabel" data-ready-label="{{ section.settings.add_label | escape }}">
+        <span
+          ref="barLabel"
+          data-ready-label="{{ section.settings.add_label | escape }}"
+          data-sold-out-label="{{ settings.stock_label_sold_out | default: 'SOLD OUT' | escape }}"
+        >
           {{- section.settings.select_label -}}
         </span>
       </button>
@@ -280,28 +285,6 @@
 </section>
 
 {% stylesheet %}
-  .brand-crumbs {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    padding: 15px var(--brand-gutter);
-    border-bottom: var(--brand-rule);
-    font: var(--brand-type-label);
-    font-size: 0.65625rem;
-    letter-spacing: 0.13em;
-    text-transform: uppercase;
-    color: rgb(var(--brand-navy-rgb) / 0.42);
-  }
-
-  .brand-crumbs a {
-    color: inherit;
-    text-decoration: none;
-  }
-
-  .brand-crumbs [aria-current] {
-    color: rgb(var(--brand-navy-rgb) / 0.72);
-  }
-
   .brand-product {
     display: grid;
 
@@ -721,17 +704,22 @@
     gap: 9px;
   }
 
+  /* The bullet is positioned rather than laid out as a flex item. Flex here
+     turned every run of text into an item of its own, so a bolded word or a
+     link picked up the gap on both sides and the line read as though it had
+     stray spaces in it. */
   .brand-acc__body li {
-    display: flex;
-    gap: 11px;
+    position: relative;
+    padding-left: 15px;
   }
 
   .brand-acc__body li::before {
     content: '';
-    flex: none;
+    position: absolute;
+    left: 0;
+    top: 0.62em;
     width: 4px;
     height: 4px;
-    margin-top: 8px;
     border-radius: 50%;
     background: rgb(var(--brand-navy-rgb) / 0.35);
   }
@@ -797,6 +785,11 @@
     color: rgb(var(--brand-navy-rgb) / 0.45);
   }
 
+  .brand-product__bar-button[disabled] {
+    background: rgb(var(--brand-navy-rgb) / 0.35);
+    cursor: default;
+  }
+
   .brand-product__bar-button {
     flex: none;
     min-height: 48px;
@@ -854,8 +847,11 @@
       padding: 0 0 0 clamp(1.5rem, 3.4vw, 4rem);
     }
 
-    /* Only offered where there is a pointer to hover with. */
-    .brand-product__frame:hover .brand-product__arrow {
+    /* Only offered where there is a pointer to hover with — but focus-within
+       too, or tabbing to them would be impossible: display:none takes an
+       element out of the tab order entirely. */
+    .brand-product__frame:hover .brand-product__arrow,
+    .brand-product__frame:focus-within .brand-product__arrow {
       display: flex;
     }
   }
@@ -873,12 +869,6 @@
       "id": "crumb_root",
       "label": "Breadcrumb root",
       "default": "ALL JERSEYS"
-    },
-    {
-      "type": "collection",
-      "id": "ordering_collection",
-      "label": "Collection that sets the numbering",
-      "info": "Used for the 02 / 05 counter. Defaults to all products."
     },
     {
       "type": "text",

@@ -206,7 +206,7 @@
     </section>
 
     {%- if paginate.pages > 1 -%}
-      <nav class="brand-shop__pages" aria-label="{{ section.settings.sort_label }}">
+      <nav class="brand-shop__pages" aria-label="{{ section.settings.pagination_label }}">
         {{- paginate | default_pagination -}}
       </nav>
     {%- endif -%}
@@ -633,6 +633,13 @@
       "id": "sort_label",
       "label": "Sort control",
       "default": "SORT"
+    },
+    {
+      "type": "text",
+      "id": "pagination_label",
+      "label": "Pagination",
+      "info": "Read out by screen readers, not shown on the page.",
+      "default": "Pages"
     },
     {
       "type": "text",

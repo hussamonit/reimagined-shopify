@@ -22,9 +22,11 @@ class BrandSizeGuide extends Component {
 
     this.addEventListener('click', this.#onClick);
 
-    // Server-rendered with the first row already marked, so the diagram is
-    // never blank before anything is pressed.
-    const current = this.refs.rows?.find((row) => row.getAttribute('aria-current') === 'true');
+    // One row arrives already marked, so the diagram is never blank before
+    // anything is pressed. Falling back to the first covers a named opening
+    // size that does not match any row.
+    const rows = this.refs.rows ?? [];
+    const current = rows.find((row) => row.getAttribute('aria-current') === 'true') ?? rows[0];
     if (current) this.#show(current);
   }
 

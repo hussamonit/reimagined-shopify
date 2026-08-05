@@ -2121,6 +2121,23 @@
     "name": "Reimagined",
     "settings": [
       {
+        "type": "header",
+        "content": "The run"
+      },
+      {
+        "type": "paragraph",
+        "content": "Numbers each jersey by its place in this collection — 01 / 05 and so on. Every page counts from the same list, so a jersey keeps its number wherever it appears. Defaults to all products."
+      },
+      {
+        "type": "collection",
+        "id": "run_collection",
+        "label": "Collection that sets the numbering"
+      },
+      {
+        "type": "header",
+        "content": "Stock"
+      },
+      {
         "type": "paragraph",
         "content": "Stock state is worked out from inventory rather than stored per product, so it cannot drift out of date. This threshold is used everywhere the state appears."
       },

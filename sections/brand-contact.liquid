@@ -1,8 +1,7 @@
-<nav class="brand-crumbs" aria-label="Breadcrumb">
-  <span>{{ section.settings.crumb_root }}</span>
-  <span aria-hidden="true">/</span>
-  <span aria-current="page">{{ section.settings.crumb_current }}</span>
-</nav>
+{% render 'brand-breadcrumbs',
+  root: section.settings.crumb_root,
+  current: section.settings.crumb_current
+%}
 
 <section class="brand-contact">
   <div class="brand-contact__head">

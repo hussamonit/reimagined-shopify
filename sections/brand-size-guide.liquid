@@ -7,11 +7,11 @@
   assign unit = section.settings.unit
 -%}
 
-<nav class="brand-crumbs" aria-label="Breadcrumb">
-  <a href="{{ routes.all_products_collection_url }}">{{ section.settings.crumb_root }}</a>
-  <span aria-hidden="true">/</span>
-  <span aria-current="page">{{ section.settings.crumb_current }}</span>
-</nav>
+{% render 'brand-breadcrumbs',
+  root: section.settings.crumb_root,
+  root_url: routes.all_products_collection_url,
+  current: section.settings.crumb_current
+%}
 
 <section class="brand-sizes">
   <div class="brand-sizes__head">
@@ -79,7 +79,14 @@
         <p class="brand-sizes__th">{{ section.settings.chest_column }}</p>
         <p class="brand-sizes__th">{{ section.settings.length_column }}</p>
 
-        {%- assign shown = 0 -%}
+        {%- liquid
+          comment
+            The page opens on a middle size rather than the smallest, so the
+            diagram shows something representative before anything is pressed.
+            If the name does not match a row, the script falls back to the first.
+          endcomment
+          assign opening = section.settings.default_size | upcase | strip
+        -%}
         {%- for line in lines -%}
           {%- liquid
             assign row = line | strip | split: '|'
@@ -90,6 +97,12 @@
             assign code = row[0] | strip
             assign chest = row[1] | strip | append: unit
             assign length = row[2] | strip | append: unit
+
+            assign code_upper = code | upcase
+            assign is_opening = false
+            if code_upper == opening
+              assign is_opening = true
+            endif
           -%}
           <button
             type="button"
@@ -98,13 +111,12 @@
             data-size="{{ code | escape }}"
             data-chest="{{ chest | escape }}"
             data-length="{{ length | escape }}"
-            aria-current="{% if shown == 0 %}true{% else %}false{% endif %}"
+            aria-current="{{ is_opening }}"
           >
             <span class="brand-sizes__code">{{ code }}</span>
             <span>{{ chest }}</span>
             <span>{{ length }}</span>
           </button>
-          {%- assign shown = shown | plus: 1 -%}
         {%- endfor -%}
       </div>
 
@@ -367,6 +379,13 @@
       "id": "unit",
       "label": "Unit after each number",
       "default": " cm"
+    },
+    {
+      "type": "text",
+      "id": "default_size",
+      "label": "Size shown first",
+      "info": "Must match a size code in the measurements. Anything else falls back to the first row.",
+      "default": "M"
     },
     {
       "type": "header",

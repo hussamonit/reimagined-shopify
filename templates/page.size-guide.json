@@ -9,6 +9,7 @@
         "heading": "Find your size.",
         "intro": "Every jersey is cut to the same block, so a size in one design is the same size in all of them. Measurements are of the garment, laid flat, in centimetres.",
         "unit": " cm",
+        "default_size": "M",
         "size_column": "SIZE",
         "chest_column": "CHEST",
         "length_column": "LENGTH",

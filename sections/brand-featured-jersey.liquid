@@ -11,6 +11,26 @@
 
   assign year = product.metafields.jersey.year.value
   assign accent = product.metafields.jersey.accent.value
+  assign year_tint = product.metafields.jersey.year_tint.value | default: accent
+
+  comment
+    The label counts from the run rather than being typed, so it cannot end up
+    naming a different jersey than the one being shown.
+  endcomment
+  capture run_position
+    render 'brand-run-number', product: product
+  endcapture
+  capture run_total
+    render 'brand-run-number', product: product, total: true
+  endcapture
+
+  comment
+    Stripped because a capture keeps whatever whitespace the snippet emitted,
+    and these land mid-sentence.
+  endcomment
+  assign run_position = run_position | strip
+  assign run_total = run_total | strip
+  assign label = section.settings.label | replace: '[n]', run_position | replace: '[total]', run_total
 -%}
 
 {%- if product == blank -%}
@@ -41,7 +61,7 @@
 
     <div class="brand-feature__copy" data-reveal="110">
       {%- if year != blank -%}
-        <span class="brand-feature__year" {% if accent %}style="color: {{ accent }}"{% endif %} aria-hidden="true">
+        <span class="brand-feature__year" {% if year_tint %}style="color: {{ year_tint }}"{% endif %} aria-hidden="true">
           {{- year -}}
         </span>
       {%- endif -%}
@@ -50,7 +70,7 @@
         {%- if accent -%}
           <span class="brand-feature__dot" style="background: {{ accent }}"></span>
         {%- endif -%}
-        {{ section.settings.label }}
+        {{ label }}
       </p>
 
       <h2 class="brand-feature__title">
@@ -185,11 +205,13 @@
     color: rgb(var(--brand-navy-rgb) / 0.5);
   }
 
+  /* The ring is what keeps an off-white dot — Saudi '22's — visible on bone. */
   .brand-feature__dot {
     flex: none;
     width: 11px;
     height: 11px;
     border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgb(var(--brand-navy-rgb) / 0.2);
   }
 
   .brand-feature__title {
@@ -226,6 +248,13 @@
 
   .brand-feature__price > span:first-child {
     font: 600 1.25rem / 1 var(--brand-font-display);
+  }
+
+  /* A custom element is display:inline until told otherwise, which leaves the
+     size row and the button in an anonymous block box rather than a container
+     of their own. */
+  .brand-feature__buy {
+    display: block;
   }
 
   .brand-feature__size-label {
@@ -353,7 +382,8 @@
       "type": "text",
       "id": "label",
       "label": "Eyebrow",
-      "default": "01 / 05 · THE FEATURE"
+      "info": "[n] is the jersey's number in the run and [total] how many there are, so it follows whichever jersey is picked.",
+      "default": "[n] / [total] · THE FEATURE"
     },
     {
       "type": "text",

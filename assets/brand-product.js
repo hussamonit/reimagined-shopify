@@ -198,7 +198,7 @@ class BrandProductBuy extends Component {
 
   /** @param {HTMLButtonElement} button */
   #choose(button) {
-    const { sizes, hint, notify, notifyTag, notifySize, addButton, addLabel, barLabel } = this.refs;
+    const { sizes, hint, notify, notifyTag, notifySize, addButton, addLabel, barButton, barLabel } = this.refs;
 
     this.#chosen = button;
 
@@ -217,9 +217,17 @@ class BrandProductBuy extends Component {
     if (notifySize) notifySize.textContent = label;
     if (notifyTag) notifyTag.value = `${notifyTag.dataset.prefix ?? 'notify'}:${label}`;
 
+    // The phone bar has no waiting list to swap itself for, so it says why it
+    // cannot be pressed instead of failing at the cart.
+    if (barButton) barButton.disabled = soldOut;
+
     const ready = addLabel?.dataset.readyLabel ?? '';
     if (addLabel && ready) addLabel.textContent = ready;
-    if (barLabel && ready) barLabel.textContent = ready;
+
+    if (barLabel) {
+      const soldOutLabel = barLabel.dataset.soldOutLabel ?? '';
+      barLabel.textContent = soldOut && soldOutLabel ? soldOutLabel : ready || barLabel.textContent;
+    }
   }
 
   /** @param {HTMLButtonElement} button */
@@ -234,6 +242,10 @@ class BrandProductBuy extends Component {
       sizes?.[0]?.focus({ preventScroll: true });
       return;
     }
+
+    // Belt and braces: the controls already reflect a sold-out size, but a
+    // stale click should not reach the cart and fail there.
+    if (this.#chosen.dataset.available !== 'true') return;
 
     const variantId = this.#chosen.dataset.variantId;
     if (!variantId || this.#busy) return;
