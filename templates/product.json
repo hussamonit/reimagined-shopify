@@ -19,15 +19,15 @@
         "delivery": {
           "type": "row",
           "settings": {
-            "title": "DELIVERY",
-            "body": "<p>2–7 business days in Saudi Arabia, free on orders over 200 SAR. Every order ships tracked, and you get the number the moment it leaves us.</p>"
+            "policy": "delivery",
+            "title": "DELIVERY"
           }
         },
         "returns": {
           "type": "row",
           "settings": {
-            "title": "RETURNS",
-            "body": "<p>3 days from delivery, unworn, tags on. Send it back for a refund or a different size — return shipping is on us if the size was our call.</p>"
+            "policy": "returns",
+            "title": "RETURNS"
           }
         }
       },
