@@ -10,6 +10,7 @@
 
   @param {object} product - The product to describe.
   @param {string} [style] - 'pill' draws it as an outlined chip, otherwise plain text.
+  @param {boolean} [compact] - Use the short healthy label, for tiles and cart lines.
   @param {string} [class] - Extra classes for the wrapper.
 
   @example
@@ -41,7 +42,16 @@
     assign label = settings.stock_label_low | default: 'LOW STOCK'
   else
     assign state = 'healthy'
-    assign label = settings.stock_label_healthy | default: 'SMALL RUN · RARE BY DESIGN'
+
+    comment
+      The full phrase belongs to the product page, where there is a column to
+      carry it. A tile is half a phone screen wide and takes the short form.
+    endcomment
+    if compact
+      assign label = settings.stock_label_healthy_short | default: 'LIMITED RUN'
+    else
+      assign label = settings.stock_label_healthy | default: 'SMALL RUN · RARE BY DESIGN'
+    endif
   endif
 -%}
 
@@ -59,12 +69,16 @@
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: rgb(var(--brand-navy-rgb) / 0.4);
-    white-space: nowrap;
+
+    /* Deliberately allowed to wrap. Held on one line it runs straight out of a
+       tile and gets clipped by the tile's own overflow. */
+    text-wrap: balance;
   }
 
   .brand-stock--pill {
     display: inline-flex;
     align-items: center;
+    white-space: nowrap;
     padding: 7px 12px;
     border: 1px solid rgb(var(--brand-navy-rgb) / 0.16);
     border-radius: var(--brand-radius-pill);

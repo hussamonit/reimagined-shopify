@@ -110,7 +110,10 @@
 {% stylesheet %}
   .brand-feature {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+
+    /* One column until there is genuinely room for two. Letting auto-fit decide
+       splits it as early as ~700px, where the copy has nowhere to breathe. */
+    grid-template-columns: minmax(0, 1fr);
     border-bottom: var(--brand-rule);
   }
 
@@ -146,9 +149,11 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: clamp(2rem, 5vw, 4.75rem);
-    padding-left: clamp(1.375rem, 2.4vw, 2.125rem);
-    border-left: var(--brand-rule);
+
+    /* Stacked, the copy takes the page gutter and the divider moves from the
+       left edge to the top. */
+    padding: 34px var(--brand-gutter) 42px;
+    border-top: var(--brand-rule);
   }
 
   .brand-feature__year {
@@ -297,14 +302,32 @@
     color: rgb(var(--brand-navy-rgb) / 0.45);
   }
 
-  @media screen and (max-width: 759px) {
-    .brand-feature__copy {
-      padding: clamp(2rem, 5vw, 4.75rem) var(--brand-gutter);
-      border-left: 0;
+  @media screen and (min-width: 900px) {
+    /* The image column's width is fixed and the copy takes whatever is left, so
+       the two always meet with no dead band between them. */
+    .brand-feature {
+      grid-template-columns: clamp(300px, 45vw, 544px) 1fr;
     }
 
+    /* No ratio here: the frame stretches to the height the copy sets, so the
+       shirt never sits above a strip of empty ground. */
+    .brand-feature__frame {
+      aspect-ratio: auto;
+    }
+
+    .brand-feature__copy {
+      /* A floor for the row — taller copy grows it and the image follows. */
+      min-height: 680px;
+      padding: clamp(2rem, 5vw, 4.75rem);
+      padding-left: 34px;
+      border-top: 0;
+      border-left: var(--brand-rule);
+    }
+  }
+
+  @media screen and (max-width: 759px) {
     .brand-feature__size {
-      min-height: var(--brand-tap-target);
+      padding: 16px 21px;
     }
   }
 {% endstylesheet %}

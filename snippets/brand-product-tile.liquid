@@ -91,7 +91,7 @@
 
   <p class="brand-tile__price">
     <span>{{ product.price | money }}</span>
-    {% render 'brand-stock-state', product: product %}
+    {% render 'brand-stock-state', product: product, compact: true %}
   </p>
 </article>
 
@@ -231,7 +231,12 @@
   .brand-tile__price {
     display: flex;
     align-items: baseline;
-    gap: 10px;
+
+    /* Two tiles across a phone leaves about 144px here. Price and stock state
+       sit side by side when they fit and stack when they do not, rather than
+       the second one running off the edge. */
+    flex-wrap: wrap;
+    gap: 4px 10px;
     margin: 0;
     padding: 11px 18px 0;
   }

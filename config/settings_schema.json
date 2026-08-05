@@ -2136,8 +2136,15 @@
       {
         "type": "text",
         "id": "stock_label_healthy",
-        "label": "Label when stock is healthy",
+        "label": "Healthy stock, product page",
         "default": "SMALL RUN · RARE BY DESIGN"
+      },
+      {
+        "type": "text",
+        "id": "stock_label_healthy_short",
+        "label": "Healthy stock, tiles and cart",
+        "info": "A tile is half a phone screen wide, so it needs the short form.",
+        "default": "LIMITED RUN"
       },
       {
         "type": "text",

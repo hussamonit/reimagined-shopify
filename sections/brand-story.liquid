@@ -51,7 +51,11 @@
     max-width: var(--brand-max-width);
     margin-inline: auto;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+
+    /* min() caps the track floor at the container width, so a 360px screen —
+       narrower than the 320px floor plus its gutters — wraps instead of
+       pushing the page sideways. */
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
     gap: clamp(2rem, 5vw, 4.5rem);
     align-items: start;
   }
@@ -109,10 +113,13 @@
   }
 
   /* 21:9 on a phone resolves to a strip a few centimetres tall, so the crop
-     opens up rather than the image shrinking away. */
+     opens up rather than the image shrinking away. The floor has to go with it:
+     a min-height plus a wide ratio makes the box resolve its WIDTH from that
+     height — 220 × 21/9 is 513px — and the page scrolls sideways. */
   @media screen and (max-width: 759px) {
     .brand-story__frame {
       aspect-ratio: 16 / 9;
+      min-height: 0;
     }
   }
 {% endstylesheet %}

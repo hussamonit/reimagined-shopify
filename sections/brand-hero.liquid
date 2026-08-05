@@ -107,7 +107,11 @@
 {% stylesheet %}
   .brand-hero {
     position: relative;
-    height: 100vh;
+
+    /* svh rather than vh: on a phone, vh measures the viewport with the browser
+       chrome hidden, so the hero is taller than the screen on arrival and the
+       lockup starts below the fold. */
+    height: 100svh;
     min-height: 620px;
     overflow: hidden;
     background: var(--brand-navy);
@@ -233,6 +237,17 @@
   @media screen and (max-width: 759px) {
     .brand-hero__cue {
       display: none;
+    }
+
+    /* The lockup sits closer to the bottom edge, and the tagline is measured
+       against the screen rather than capped, so it holds its presence on a
+       narrow screen. */
+    .brand-hero__foot {
+      bottom: 32px;
+    }
+
+    .brand-hero__tagline img {
+      width: 72%;
     }
   }
 
