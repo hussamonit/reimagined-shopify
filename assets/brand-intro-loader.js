@@ -1,5 +1,5 @@
 import { Component } from '@theme/component';
-import { getScroller, scrollTo } from '@theme/brand-scroll';
+import { getScrollTop, scrollTo } from '@theme/brand-scroll';
 
 /**
  * The navy card that covers the homepage on arrival.
@@ -26,14 +26,29 @@ class BrandIntroLoader extends Component {
   connectedCallback() {
     super.connectedCallback();
 
-    // An inline script in the section may already have hidden this before the
-    // first paint, which is the whole point of it — do not undo that here.
-    if (this.hidden) return;
-
     // Nothing to cover in the editor — it would land on top of the section
     // being edited every time the preview reloaded.
-    if (window.Shopify?.designMode || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (window.Shopify?.designMode) {
       this.#finish(false);
+      return;
+    }
+
+    // The homepage is designed to open at the top. Left alone, the browser
+    // restores wherever the visitor last was, so a reload part-way down the
+    // page reopens part-way down the page.
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    scrollTo(0);
+
+    // The inline script in the section may already have hidden this before the
+    // first paint, which is the whole point of it — do not undo that here. The
+    // hash still needs honouring, since the scroll was just reset.
+    if (this.hidden) {
+      this.#jumpToHash();
+      return;
+    }
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this.#finish(true);
       return;
     }
 
@@ -42,7 +57,6 @@ class BrandIntroLoader extends Component {
     // Horizon locks scrolling with an attribute on <html>, which covers both
     // the document and the inner container it scrolls on desktop.
     document.documentElement.setAttribute('scroll-lock', '');
-    getScroller().scrollTop = 0;
 
     this.#timer = window.setTimeout(() => this.#finish(true), DURATION);
   }
@@ -87,7 +101,7 @@ class BrandIntroLoader extends Component {
 
     if (!target) return;
 
-    scrollTo(target.getBoundingClientRect().top + getScroller().scrollTop - ANCHOR_OFFSET, 'smooth');
+    scrollTo(target.getBoundingClientRect().top + getScrollTop() - ANCHOR_OFFSET, 'smooth');
   }
 }
 

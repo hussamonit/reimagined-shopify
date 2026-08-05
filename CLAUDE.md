@@ -15,12 +15,13 @@ This theme is connected to Shopify through the GitHub integration. Files reach t
 - **`git pull` immediately after asking the owner to change anything in the Shopify editor.**
   Editor changes are committed back to the branch by Shopify, and working on a stale copy
   will conflict with them.
-- **Only push working states.** The branch history doubles as the store's version history, so
-  every commit that lands on `origin/main` should be a version worth rolling back to. Verify
-  locally with `shopify theme dev` first, then push.
+- **Commit chunk by chunk, push once per part.** Commits are cheap and can be mid-progress.
+  Pushing is not: the branch history doubles as the store's version history, so a push should
+  mark a complete, verified part or page — never every commit. Verify on `shopify theme dev`,
+  then push.
 - Local preview (`shopify theme dev`) and the Shopify theme editor are **not** the same thing.
-  The dev server serves the working tree; the editor serves what is on Shopify. If they
-  disagree, the difference is unpushed work.
+  The dev server shows the working tree live, unpushed changes included. The theme editor only
+  ever shows what has been pushed. If they disagree, the difference is unpushed work.
 
 ## Horizon gotcha: the page is not what scrolls
 
