@@ -16,6 +16,23 @@
   >
 </brand-intro-loader>
 
+{%- if section.settings.once_per_visit -%}
+  {%- comment -%}
+    Deliberately inline and not a module: this has to run while the page is
+    still parsing. Left to the deferred script, a return visit gets a frame of
+    navy before it is hidden, which reads as a flicker.
+  {%- endcomment -%}
+  <script>
+    try {
+      if (sessionStorage.getItem('brand-intro-seen')) {
+        document.querySelector('brand-intro-loader').hidden = true;
+      }
+    } catch (error) {
+      // No storage available — let the intro play.
+    }
+  </script>
+{%- endif -%}
+
 {% stylesheet %}
   .brand-loader {
     position: fixed;

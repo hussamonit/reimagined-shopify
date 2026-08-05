@@ -1,4 +1,5 @@
 import { Component } from '@theme/component';
+import { getScroller, scrollTo } from '@theme/brand-scroll';
 
 /**
  * The navy card that covers the homepage on arrival.
@@ -25,6 +26,10 @@ class BrandIntroLoader extends Component {
   connectedCallback() {
     super.connectedCallback();
 
+    // An inline script in the section may already have hidden this before the
+    // first paint, which is the whole point of it — do not undo that here.
+    if (this.hidden) return;
+
     // Nothing to cover in the editor — it would land on top of the section
     // being edited every time the preview reloaded.
     if (window.Shopify?.designMode || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -32,13 +37,12 @@ class BrandIntroLoader extends Component {
       return;
     }
 
-    if (this.dataset.oncePerVisit === 'true' && this.#alreadySeen()) {
-      this.#finish(false);
-      return;
-    }
+    if (this.dataset.oncePerVisit === 'true') this.#markSeen();
 
-    document.body.style.overflow = 'hidden';
-    window.scrollTo(0, 0);
+    // Horizon locks scrolling with an attribute on <html>, which covers both
+    // the document and the inner container it scrolls on desktop.
+    document.documentElement.setAttribute('scroll-lock', '');
+    getScroller().scrollTop = 0;
 
     this.#timer = window.setTimeout(() => this.#finish(true), DURATION);
   }
@@ -50,23 +54,20 @@ class BrandIntroLoader extends Component {
 
   /**
    * Private browsing and blocked storage both throw here rather than returning
-   * nothing, so a failure is treated as "not seen" and the intro just plays.
+   * nothing, so a failure just means the intro plays again next time.
    */
-  #alreadySeen() {
+  #markSeen() {
     try {
-      if (sessionStorage.getItem(SEEN_KEY)) return true;
       sessionStorage.setItem(SEEN_KEY, '1');
     } catch {
-      // No storage available — fall through and play it.
+      // No storage available.
     }
-
-    return false;
   }
 
   /** @param {boolean} jump - Whether an incoming hash still needs honouring. */
   #finish(jump) {
     this.hidden = true;
-    document.body.style.overflow = '';
+    document.documentElement.removeAttribute('scroll-lock');
 
     if (jump) this.#jumpToHash();
   }
@@ -86,10 +87,7 @@ class BrandIntroLoader extends Component {
 
     if (!target) return;
 
-    window.scrollTo({
-      top: target.getBoundingClientRect().top + window.scrollY - ANCHOR_OFFSET,
-      behavior: 'smooth',
-    });
+    scrollTo(target.getBoundingClientRect().top + getScroller().scrollTop - ANCHOR_OFFSET, 'smooth');
   }
 }
 

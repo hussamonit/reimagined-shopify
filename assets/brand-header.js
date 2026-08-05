@@ -1,4 +1,5 @@
 import { Component } from '@theme/component';
+import { getScrollTop, onScroll } from '@theme/brand-scroll';
 
 /**
  * The scroll-linked masthead used on top of the homepage hero.
@@ -48,13 +49,16 @@ class BrandHeaderOverlay extends Component {
 
   #metrics = { start: 0, end: 0, scale: 1, distance: 200, darkStart: 0, hasHero: true };
 
+  /** @type {(() => void) | null} */
+  #stopScroll = null;
+
   connectedCallback() {
     super.connectedCallback();
 
     this.#measure();
     this.#update();
 
-    window.addEventListener('scroll', this.#onScroll, { passive: true });
+    this.#stopScroll = onScroll(this.#onScroll);
     window.addEventListener('resize', this.#onResize);
     this.addEventListener('pointerenter', this.#onPointerEnter);
     this.addEventListener('pointerleave', this.#onPointerLeave);
@@ -63,7 +67,7 @@ class BrandHeaderOverlay extends Component {
   disconnectedCallback() {
     super.disconnectedCallback();
 
-    window.removeEventListener('scroll', this.#onScroll);
+    this.#stopScroll?.();
     window.removeEventListener('resize', this.#onResize);
     this.removeEventListener('pointerenter', this.#onPointerEnter);
     this.removeEventListener('pointerleave', this.#onPointerLeave);
@@ -129,7 +133,7 @@ class BrandHeaderOverlay extends Component {
     const { mark, markLight, markDark, logo, logoInner, logoLight, logoDark, links } = this.refs;
     const { start, end, scale, distance, darkStart, hasHero } = this.#metrics;
 
-    const scrolled = window.scrollY;
+    const scrolled = getScrollTop();
     const progress = smoothstep(clamp01(scrolled / distance));
 
     if (mark) {
