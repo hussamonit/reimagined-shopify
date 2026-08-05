@@ -1,0 +1,178 @@
+{%- comment -%}
+  Order confirmation — paste into Settings → Notifications → Order confirmation.
+
+  Not a theme file. Shopify's notification editor is a separate place; this
+  lives here so the wording is versioned alongside the storefront rather than
+  only existing inside the admin.
+
+  The jersey squares need a year and a colour per product. Notification emails
+  cannot read metafields, so the five are listed below by product handle. Adding
+  a sixth jersey means one more line here; until then it falls back to the size
+  on a plain square, which still reads deliberately.
+{%- endcomment -%}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Order confirmed — {{ shop.name }}</title>
+<!--[if mso]><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml><![endif]-->
+<style>
+  @media only screen and (max-width:620px){
+    .p-side{padding-left:22px!important;padding-right:22px!important}
+    .stack{display:block!important;width:100%!important}
+    .r-right{text-align:left!important}
+    .h1{font-size:30px!important}
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#e7e5e0;">
+<span style="display:none;font-size:1px;color:#e7e5e0;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">Order {{ order_name }} is confirmed. We will email again the moment it leaves us.&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</span>
+
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#e7e5e0;">
+<tr><td align="center" style="padding:28px 12px;">
+
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;max-width:600px;background-color:#f5f4f1;">
+
+  <!-- masthead -->
+  <tr><td align="center" bgcolor="#111326" style="background-color:#111326;padding:26px 32px;">
+    <div style="font-family:Arial,Helvetica,sans-serif;font-size:19px;line-height:22px;mso-line-height-rule:exactly;font-weight:bold;letter-spacing:5px;color:#ffffff;">REIMAGINED</div>
+  </td></tr>
+
+  <!-- headline -->
+  <tr><td class="p-side" align="left" style="padding:44px 32px 0;">
+    <div style="font-family:'Courier New',Courier,monospace;font-size:11px;line-height:14px;mso-line-height-rule:exactly;letter-spacing:2px;color:#6b6d80;padding-bottom:16px;">ORDER CONFIRMED</div>
+    <div class="h1" style="font-family:Arial,Helvetica,sans-serif;font-size:38px;line-height:40px;mso-line-height-rule:exactly;font-weight:bold;letter-spacing:-1px;color:#111326;">Thanks &mdash; we have it.</div>
+    <div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:26px;mso-line-height-rule:exactly;color:#55576a;padding-top:14px;">
+      {{ customer.first_name }}, your order is confirmed and going into production picking now. We&rsquo;ll email you again with tracking the moment it leaves us.
+    </div>
+  </td></tr>
+
+  <!-- order meta -->
+  <tr><td class="p-side" align="left" style="padding:30px 32px 0;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-top:1px solid #d8d6cf;border-bottom:1px solid #d8d6cf;">
+      <tr>
+        <td class="stack" width="50%" style="width:50%;padding:16px 0;vertical-align:top;">
+          <div style="font-family:'Courier New',Courier,monospace;font-size:10px;line-height:13px;mso-line-height-rule:exactly;letter-spacing:1.5px;color:#8b8d9c;padding-bottom:6px;">ORDER</div>
+          <div style="font-family:'Courier New',Courier,monospace;font-size:14px;line-height:18px;mso-line-height-rule:exactly;color:#111326;">{{ order_name }}</div>
+        </td>
+        <td class="stack r-right" width="50%" style="width:50%;padding:16px 0;vertical-align:top;text-align:right;">
+          <div style="font-family:'Courier New',Courier,monospace;font-size:10px;line-height:13px;mso-line-height-rule:exactly;letter-spacing:1.5px;color:#8b8d9c;padding-bottom:6px;">PLACED</div>
+          <div style="font-family:'Courier New',Courier,monospace;font-size:14px;line-height:18px;mso-line-height-rule:exactly;color:#111326;">{{ created_at | date: "%d %b %Y" }}</div>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+
+  <!-- line items -->
+  <tr><td class="p-side" align="left" style="padding:8px 32px 0;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;">
+      {% for line in subtotal_line_items %}
+        {%- comment -%} One line per jersey. Handles are the store's, colours are the design's. {%- endcomment -%}
+        {%- assign year = '' -%}
+        {%- assign accent = '#111326' -%}
+        {%- case line.product.handle -%}
+          {%- when 'saudi-arabia-al-suqour-green-jersey-wc2026' -%}{%- assign year = '&rsquo;94' -%}{%- assign accent = '#006C35' -%}
+          {%- when 'saudi-arabia-al-suqour-greyjersey-wc2026' -%}{%- assign year = '&rsquo;22' -%}{%- assign accent = '#00843D' -%}
+          {%- when 'argentina-la-albiceleste-jersey-wc2026' -%}{%- assign year = '&rsquo;86' -%}{%- assign accent = '#75AADB' -%}
+          {%- when 'portugal-a-selecao-jersey-wc2026' -%}{%- assign year = '&rsquo;16' -%}{%- assign accent = '#C8102E' -%}
+          {%- when 'spain-la-roja-jersey-wc2026' -%}{%- assign year = '&rsquo;26' -%}{%- assign accent = '#F1BF00' -%}
+        {%- endcase -%}
+        {%- assign size = line.variant.title | split: '(' | last | remove: ')' | strip -%}
+        {%- if year == '' -%}{%- assign year = size -%}{%- endif -%}
+
+        {% unless forloop.first %}
+          <tr><td colspan="3" style="border-top:1px solid #e2e0d9;font-size:0;line-height:0;">&nbsp;</td></tr>
+        {% endunless %}
+        <tr>
+          <td width="72" style="width:72px;padding:22px 0;vertical-align:top;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="60" style="width:60px;"><tr>
+              <td bgcolor="#e7e5e0" align="center" height="76" style="width:60px;height:76px;background-color:#e7e5e0;font-family:'Courier New',Courier,monospace;font-size:15px;line-height:76px;mso-line-height-rule:exactly;color:{{ accent }};font-weight:bold;">{{ year }}</td>
+            </tr></table>
+          </td>
+          <td style="padding:22px 12px 22px 0;vertical-align:top;">
+            <div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:22px;mso-line-height-rule:exactly;font-weight:bold;color:#111326;">{{ line.product.title }}</div>
+            <div style="font-family:'Courier New',Courier,monospace;font-size:12px;line-height:20px;mso-line-height-rule:exactly;color:#6b6d80;padding-top:5px;">SIZE {{ size }} &nbsp;&middot;&nbsp; QTY {{ line.quantity }}</div>
+          </td>
+          <td width="92" align="right" style="width:92px;padding:22px 0;vertical-align:top;text-align:right;font-family:'Courier New',Courier,monospace;font-size:14px;line-height:22px;mso-line-height-rule:exactly;color:#111326;">{{ line.final_line_price | money }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  </td></tr>
+
+  <!-- totals -->
+  <tr><td class="p-side" align="left" style="padding:0 32px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-top:1px solid #d8d6cf;">
+      <tr>
+        <td style="padding:18px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;mso-line-height-rule:exactly;color:#55576a;">Subtotal</td>
+        <td align="right" style="padding:18px 0 0;text-align:right;font-family:'Courier New',Courier,monospace;font-size:14px;line-height:20px;mso-line-height-rule:exactly;color:#111326;">{{ subtotal_price | money }}</td>
+      </tr>
+      <tr>
+        <td style="padding:10px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;mso-line-height-rule:exactly;color:#55576a;">Shipping</td>
+        <td align="right" style="padding:10px 0 0;text-align:right;font-family:'Courier New',Courier,monospace;font-size:14px;line-height:20px;mso-line-height-rule:exactly;color:#111326;">{% if shipping_price > 0 %}{{ shipping_price | money }}{% else %}Free{% endif %}</td>
+      </tr>
+      {% if total_discounts > 0 %}
+      <tr>
+        <td style="padding:10px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;mso-line-height-rule:exactly;color:#55576a;">Discount</td>
+        <td align="right" style="padding:10px 0 0;text-align:right;font-family:'Courier New',Courier,monospace;font-size:14px;line-height:20px;mso-line-height-rule:exactly;color:#111326;">&minus;{{ total_discounts | money }}</td>
+      </tr>
+      {% endif %}
+      <tr>
+        <td style="padding:18px 0 22px;border-bottom:2px solid #111326;font-family:Arial,Helvetica,sans-serif;font-size:17px;line-height:22px;mso-line-height-rule:exactly;font-weight:bold;color:#111326;">Total</td>
+        <td align="right" style="padding:18px 0 22px;border-bottom:2px solid #111326;text-align:right;font-family:'Courier New',Courier,monospace;font-size:19px;line-height:22px;mso-line-height-rule:exactly;font-weight:bold;color:#111326;">{{ total_price | money }}</td>
+      </tr>
+    </table>
+  </td></tr>
+
+  <!-- shipping to -->
+  <tr><td class="p-side" align="left" style="padding:30px 32px 0;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;">
+      <tr>
+        <td class="stack" width="50%" style="width:50%;vertical-align:top;padding-right:16px;">
+          <div style="font-family:'Courier New',Courier,monospace;font-size:10px;line-height:13px;mso-line-height-rule:exactly;letter-spacing:1.5px;color:#8b8d9c;padding-bottom:9px;">SHIPPING TO</div>
+          <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:23px;mso-line-height-rule:exactly;color:#111326;">
+            {{ shipping_address | format_address }}
+          </div>
+        </td>
+        <td class="stack" width="50%" style="width:50%;vertical-align:top;">
+          <div style="font-family:'Courier New',Courier,monospace;font-size:10px;line-height:13px;mso-line-height-rule:exactly;letter-spacing:1.5px;color:#8b8d9c;padding-bottom:9px;">ARRIVING IN</div>
+          <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:23px;mso-line-height-rule:exactly;color:#111326;">2&ndash;7 business days<br><span style="color:#6b6d80;">Tracking follows by email as soon as the parcel is collected.</span></div>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+
+  <!-- button -->
+  <tr><td class="p-side" align="left" style="padding:32px 32px 0;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td bgcolor="#111326" style="background-color:#111326;border-radius:2px;">
+        <a href="{{ order_status_url }}" style="display:block;padding:16px 34px;font-family:'Courier New',Courier,monospace;font-size:12px;line-height:14px;mso-line-height-rule:exactly;letter-spacing:2px;font-weight:bold;color:#ffffff;text-decoration:none;">VIEW YOUR ORDER</a>
+      </td>
+    </tr></table>
+  </td></tr>
+
+  <!-- help -->
+  <tr><td class="p-side" align="left" style="padding:36px 32px 44px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-top:1px solid #d8d6cf;">
+      <tr><td style="padding-top:24px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:24px;mso-line-height-rule:exactly;color:#55576a;">
+        Wrong size, wrong address, or anything else &mdash; reply to this email or write to <a href="mailto:{{ shop.email }}" style="color:#111326;text-decoration:underline;">{{ shop.email }}</a>. We answer within 1&ndash;24 hours. Returns are accepted within 3 days of delivery.
+      </td></tr>
+    </table>
+  </td></tr>
+
+  <!-- footer band -->
+  <tr><td align="center" bgcolor="#111326" style="background-color:#111326;padding:34px 32px;">
+    <div style="font-family:Arial,Helvetica,sans-serif;font-size:26px;line-height:30px;mso-line-height-rule:exactly;font-weight:bold;letter-spacing:7px;color:#ffffff;">REIMAGINED</div>
+    <div style="font-family:'Courier New',Courier,monospace;font-size:10px;line-height:18px;mso-line-height-rule:exactly;letter-spacing:1.5px;color:#8b8d9c;padding-top:14px;">ORIGINAL DESIGNS &middot; NOT REPLICAS</div>
+    <div style="font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:20px;mso-line-height-rule:exactly;color:#8b8d9c;padding-top:18px;">
+      This is a transactional message about order {{ order_name }}.<br>{{ shop.name }} &middot; Saudi Arabia &middot; <a href="mailto:{{ shop.email }}" style="color:#c9cad4;text-decoration:underline;">{{ shop.email }}</a>
+    </div>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>
