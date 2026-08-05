@@ -44,47 +44,18 @@
   {%- endfor -%}
 </section>
 
+{% comment %}
+  The .brand-grid rules live with the tile in brand-product-tile, since the shop
+  page lays the same tiles out the same way.
+{% endcomment %}
+
 {% stylesheet %}
-  .brand-grid {
-    display: grid;
-
-    /* Two up until there is room for the full row — the same step the
-       prototype makes. */
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    border-bottom: var(--brand-rule);
-  }
-
   .brand-grid__empty {
     padding: var(--brand-section-padding) var(--brand-gutter);
     font: var(--brand-type-label);
     letter-spacing: var(--brand-tracking-label);
     text-transform: uppercase;
     color: var(--brand-label-muted);
-  }
-
-  .brand-grid .brand-tile:nth-child(2n) {
-    border-right: 0;
-  }
-
-  @media screen and (min-width: 1040px) {
-    .brand-grid--3 {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    .brand-grid--4 {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-
-    /* The two-up rule has to be undone first, or every second tile keeps
-       losing its divider. */
-    .brand-grid .brand-tile:nth-child(2n) {
-      border-right: var(--brand-rule);
-    }
-
-    .brand-grid--3 .brand-tile:nth-child(3n),
-    .brand-grid--4 .brand-tile:nth-child(4n) {
-      border-right: 0;
-    }
   }
 {% endstylesheet %}
 

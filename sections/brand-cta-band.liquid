@@ -1,0 +1,123 @@
+<section class="brand-cta" data-reveal="0">
+  <div class="brand-cta__inner">
+    <div>
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="brand-cta__eyebrow">{{ section.settings.eyebrow }}</p>
+      {%- endif -%}
+      <h2 class="brand-cta__heading">{{ section.settings.heading }}</h2>
+    </div>
+
+    <div>
+      {%- if section.settings.body != blank -%}
+        <p class="brand-cta__body">{{ section.settings.body }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.button_label != blank -%}
+        <a href="{{ section.settings.button_link }}" class="brand-cta__button">
+          {{- section.settings.button_label -}}
+        </a>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% stylesheet %}
+  .brand-cta {
+    background: var(--brand-navy);
+    color: var(--brand-white);
+    padding: clamp(3.5rem, 7vw, 6.5rem) var(--brand-gutter);
+  }
+
+  .brand-cta__inner {
+    max-width: var(--brand-max-width);
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+    gap: clamp(1.75rem, 4vw, 4rem);
+    align-items: end;
+  }
+
+  .brand-cta__eyebrow {
+    margin: 0 0 20px;
+    font: var(--brand-type-label);
+    font-size: 0.71875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--brand-on-navy-label);
+  }
+
+  .brand-cta__heading {
+    margin: 0;
+    font: 800 clamp(1.875rem, 3.8vw, 3.375rem) / 1 var(--brand-font-display);
+    letter-spacing: -0.032em;
+    text-wrap: pretty;
+  }
+
+  .brand-cta__body {
+    margin: 0 0 24px;
+    font: var(--brand-type-body);
+    line-height: 1.62;
+    color: rgb(255 255 255 / 0.7);
+    text-wrap: pretty;
+  }
+
+  .brand-cta__button {
+    display: inline-block;
+    padding: 15px 30px;
+    border-radius: var(--brand-radius);
+    background: var(--brand-white);
+    color: var(--brand-navy);
+    font: var(--brand-type-button);
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background-color var(--brand-transition);
+  }
+
+  .brand-cta__button:hover {
+    background: rgb(255 255 255 / 0.82);
+    color: var(--brand-navy);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Next drop band",
+  "tag": "div",
+  "class": "brand-cta-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "NEXT DROP"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "The sixth moment is already on the table."
+    },
+    {
+      "type": "textarea",
+      "id": "body",
+      "label": "Body",
+      "default": "Runs are small and they go quickly. The list hears first — usually a week before anyone else."
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button",
+      "default": "JOIN THE LIST"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link",
+      "info": "The newsletter lives at the foot of the homepage — link to /#newsletter."
+    }
+  ],
+  "presets": [{ "name": "Next drop band" }]
+}
+{% endschema %}
