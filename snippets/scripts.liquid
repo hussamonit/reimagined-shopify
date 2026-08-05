@@ -98,6 +98,13 @@
   ></script>
 {%- endif -%}
 
+{%- if template.name == 'cart' -%}
+  <script
+    src="{{ 'brand-cart-items.js' | asset_url }}"
+    type="module"
+  ></script>
+{%- endif -%}
+
 {%- if template.name == 'index' -%}
   <script
     src="{{ 'brand-intro-loader.js' | asset_url }}"

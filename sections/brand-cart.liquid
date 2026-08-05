@@ -1,0 +1,799 @@
+{%- liquid
+  assign free_over = section.settings.free_shipping_over | times: 100
+  assign qualifies = false
+  if free_over > 0 and cart.total_price >= free_over
+    assign qualifies = true
+  endif
+  comment
+    Formatted here rather than in the filter chain below, where money would
+    apply to the finished sentence instead of the number.
+  endcomment
+  assign remaining = free_over | minus: cart.total_price | money
+-%}
+
+<nav class="brand-crumbs" aria-label="Breadcrumb">
+  <a href="{{ routes.all_products_collection_url }}">{{ section.settings.crumb_root }}</a>
+  <span aria-hidden="true">/</span>
+  <span aria-current="page">{{ section.settings.crumb_current }}</span>
+</nav>
+
+<section class="brand-bag">
+  <div class="brand-bag__inner">
+    <div class="brand-bag__head">
+      <h1>{{ section.settings.heading }}</h1>
+      <span>
+        {%- if cart.item_count == 1 -%}
+          1 {{ section.settings.count_singular }}
+        {%- else -%}
+          {{ cart.item_count }} {{ section.settings.count_plural }}
+        {%- endif -%}
+      </span>
+    </div>
+
+    {%- comment -%}
+      The component wraps everything that has to change together — lines,
+      totals, the shipping note and the complete-the-set row.
+    {%- endcomment -%}
+    <brand-cart-items data-section-id="{{ section.id }}">
+      {%- if cart.item_count == 0 -%}
+        <div class="brand-bag__empty">
+          <p class="brand-bag__empty-title">{{ section.settings.empty_heading }}</p>
+          <p class="brand-bag__empty-body">{{ section.settings.empty_body }}</p>
+          <a href="{{ routes.all_products_collection_url }}" class="brand-bag__empty-action">
+            {{- section.settings.empty_action -}}
+          </a>
+        </div>
+      {%- else -%}
+        <div class="brand-bag__grid">
+          <div class="brand-bag__lines">
+            {%- for item in cart.items -%}
+              <div class="brand-bag__line">
+                <a href="{{ item.url }}" class="brand-bag__thumb">
+                  {%- if item.image -%}
+                    {{ item.image | image_url: width: 320 | image_tag: width: 160, loading: 'lazy', alt: item.product.title }}
+                  {%- endif -%}
+                </a>
+
+                <div class="brand-bag__detail">
+                  <a href="{{ item.url }}" class="brand-bag__name">{{ item.product.title }}</a>
+
+                  <p class="brand-bag__meta">
+                    {{ section.settings.size_word }}
+                    {%- render 'brand-size-label', label: item.variant.title -%}
+                    &nbsp;·&nbsp;
+                    {%- render 'brand-stock-state', product: item.product, compact: true -%}
+                  </p>
+
+                  <div class="brand-bag__controls">
+                    <div class="brand-bag__stepper">
+                      {%- comment -%}
+                        Links, not buttons: they carry the change in the URL, so
+                        the bag still works if the script never runs.
+                      {%- endcomment -%}
+                      <a
+                        href="{{ routes.cart_change_url }}?line={{ forloop.index }}&quantity={{ item.quantity | minus: 1 }}"
+                        data-line="{{ forloop.index }}"
+                        data-quantity="{{ item.quantity | minus: 1 }}"
+                        aria-label="{{ section.settings.decrease_label }}"
+                      >−</a>
+                      <span>{{ item.quantity }}</span>
+                      <a
+                        href="{{ routes.cart_change_url }}?line={{ forloop.index }}&quantity={{ item.quantity | plus: 1 }}"
+                        data-line="{{ forloop.index }}"
+                        data-quantity="{{ item.quantity | plus: 1 }}"
+                        aria-label="{{ section.settings.increase_label }}"
+                      >+</a>
+                    </div>
+
+                    <a
+                      href="{{ routes.cart_change_url }}?line={{ forloop.index }}&quantity=0"
+                      class="brand-bag__remove"
+                      data-line="{{ forloop.index }}"
+                      data-quantity="0"
+                    >
+                      {{- section.settings.remove_label -}}
+                    </a>
+                  </div>
+                </div>
+
+                <p class="brand-bag__line-total">{{ item.final_line_price | money }}</p>
+              </div>
+            {%- endfor -%}
+
+            <a href="{{ routes.all_products_collection_url }}" class="brand-bag__keep">
+              {{- section.settings.keep_label -}}
+            </a>
+          </div>
+
+          <aside class="brand-bag__summary">
+            <p class="brand-bag__summary-label">{{ section.settings.summary_label }}</p>
+
+            <div class="brand-bag__rows">
+              <div class="brand-bag__row">
+                <span>{{ section.settings.subtotal_label }}</span>
+                <span>{{ cart.total_price | money }}</span>
+              </div>
+              <div class="brand-bag__row">
+                <span>{{ section.settings.shipping_label }}</span>
+                <span>
+                  {%- if qualifies -%}
+                    {{ section.settings.shipping_free }}
+                  {%- else -%}
+                    {{ section.settings.shipping_unknown }}
+                  {%- endif -%}
+                </span>
+              </div>
+            </div>
+
+            <div class="brand-bag__total">
+              <span>{{ section.settings.total_label }}</span>
+              <span>{{ cart.total_price | money }}</span>
+            </div>
+
+            {%- if qualifies == false and free_over > 0 -%}
+              <p class="brand-bag__ship-hint">
+                {{ section.settings.shipping_hint | replace: '[amount]', remaining }}
+              </p>
+            {%- endif -%}
+
+            <form action="{{ routes.cart_url }}" method="post">
+              <button type="submit" name="checkout" class="brand-bag__checkout">
+                {{- section.settings.checkout_label -}}
+              </button>
+            </form>
+
+            <div class="brand-bag__payments">{% render 'brand-payment-marks' %}</div>
+
+            {%- if section.settings.terms != blank -%}
+              <p class="brand-bag__terms">{{ section.settings.terms }}</p>
+            {%- endif -%}
+          </aside>
+        </div>
+      {%- endif -%}
+
+      {%- comment -%}
+        Only what is not already in the bag, and only while there is something
+        left to suggest.
+      {%- endcomment -%}
+      {%- liquid
+        assign source = section.settings.collection
+        if source == blank
+          assign source = collections.all
+        endif
+
+        assign in_bag = ''
+        for item in cart.items
+          assign in_bag = in_bag | append: item.product_id | append: ','
+        endfor
+
+        assign suggested = 0
+      -%}
+
+      {%- capture suggestions -%}
+        {%- for item in source.products -%}
+          {%- assign needle = item.id | append: ',' -%}
+          {%- if in_bag contains needle -%}
+            {%- continue -%}
+          {%- endif -%}
+          {%- if suggested >= section.settings.suggestion_limit -%}
+            {%- break -%}
+          {%- endif -%}
+
+          <a href="{{ item.url }}" class="brand-bag__suggestion">
+            <span class="brand-bag__suggestion-frame">
+              {%- if item.featured_media -%}
+                {{ item.featured_media | image_url: width: 600 | image_tag: width: 300, loading: 'lazy', alt: item.title }}
+              {%- endif -%}
+            </span>
+            <span class="brand-bag__suggestion-row">
+              <span class="brand-bag__suggestion-name">{{ item.title }}</span>
+              <span class="brand-bag__suggestion-price">{{ item.price | money }}</span>
+            </span>
+            <span class="brand-bag__suggestion-state">
+              {%- render 'brand-stock-state', product: item, compact: true -%}
+            </span>
+          </a>
+
+          {%- assign suggested = suggested | plus: 1 -%}
+        {%- endfor -%}
+      {%- endcapture -%}
+
+      {%- if suggestions != blank -%}
+        <div class="brand-bag__set">
+          <p class="brand-bag__set-label">{{ section.settings.set_label }}</p>
+          <div class="brand-bag__set-grid">{{ suggestions }}</div>
+        </div>
+      {%- endif -%}
+    </brand-cart-items>
+  </div>
+</section>
+
+{% stylesheet %}
+  .brand-bag {
+    padding: clamp(1.625rem, 4vw, 3.375rem) clamp(1rem, 5vw, 5rem) clamp(2.5rem, 5vw, 5rem);
+  }
+
+  .brand-bag__inner {
+    max-width: 1240px;
+    margin-inline: auto;
+  }
+
+  .brand-bag__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-bottom: clamp(1.25rem, 2.4vw, 1.875rem);
+  }
+
+  .brand-bag__head h1 {
+    margin: 0;
+    font: 800 clamp(2.125rem, 4.4vw, 3.625rem) / 0.98 var(--brand-font-display);
+    letter-spacing: -0.032em;
+  }
+
+  .brand-bag__head span {
+    font: var(--brand-type-label);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.45);
+  }
+
+  brand-cart-items {
+    display: block;
+  }
+
+  brand-cart-items[aria-busy='true'] {
+    opacity: 0.55;
+    pointer-events: none;
+    transition: opacity var(--brand-transition);
+  }
+
+  /* --- Empty ------------------------------------------------------------- */
+
+  .brand-bag__empty {
+    padding: clamp(3.5rem, 9vw, 7.5rem) 0;
+    border-top: 1px solid rgb(var(--brand-navy-rgb) / 0.14);
+    text-align: center;
+  }
+
+  .brand-bag__empty-title {
+    margin: 0 0 8px;
+    font: 800 clamp(1.375rem, 2.6vw, 2rem) / 1.1 var(--brand-font-display);
+    letter-spacing: -0.02em;
+  }
+
+  .brand-bag__empty-body {
+    margin: 0 auto 28px;
+    max-width: 380px;
+    font: var(--brand-type-body);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: rgb(var(--brand-navy-rgb) / 0.55);
+    text-wrap: pretty;
+  }
+
+  .brand-bag__empty-action {
+    display: inline-block;
+    padding: 17px 34px;
+    border-radius: var(--brand-radius);
+    background: var(--brand-navy);
+    color: var(--brand-white);
+    font: var(--brand-type-button);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background-color var(--brand-transition);
+  }
+
+  .brand-bag__empty-action:hover {
+    background: var(--brand-navy-hover);
+    color: var(--brand-white);
+  }
+
+  /* --- Lines ------------------------------------------------------------- */
+
+  .brand-bag__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(1.75rem, 3.4vw, 3.375rem);
+    align-items: start;
+  }
+
+  .brand-bag__lines {
+    min-width: 0;
+    border-top: 1px solid rgb(var(--brand-navy-rgb) / 0.14);
+  }
+
+  .brand-bag__line {
+    display: flex;
+    gap: clamp(0.875rem, 2vw, 1.375rem);
+    padding: clamp(1.125rem, 2.2vw, 1.625rem) 0;
+    border-bottom: 1px solid rgb(var(--brand-navy-rgb) / 0.1);
+  }
+
+  .brand-bag__thumb {
+    position: relative;
+    flex: none;
+    width: clamp(74px, 9vw, 104px);
+    aspect-ratio: 3 / 4;
+    background: var(--brand-bone);
+    overflow: hidden;
+    display: block;
+  }
+
+  .brand-bag__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .brand-bag__detail {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .brand-bag__name {
+    font: 700 clamp(1rem, 1.6vw, 1.25rem) / 1.15 var(--brand-font-display);
+    letter-spacing: -0.018em;
+    color: var(--brand-navy);
+    text-decoration: none;
+  }
+
+  .brand-bag__meta {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    font: var(--brand-type-label);
+    font-size: 0.65625rem;
+    line-height: 1.5;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.45);
+  }
+
+  .brand-bag__controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: auto;
+    padding-top: 14px;
+  }
+
+  .brand-bag__stepper {
+    display: flex;
+    align-items: center;
+    border: 1px solid rgb(var(--brand-navy-rgb) / 0.2);
+    border-radius: var(--brand-radius);
+  }
+
+  .brand-bag__stepper a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--brand-tap-target);
+    height: var(--brand-tap-target);
+    font: 400 1.0625rem / 1 var(--brand-font-display);
+    color: var(--brand-navy);
+    text-decoration: none;
+    transition: background-color var(--brand-transition);
+  }
+
+  .brand-bag__stepper a:hover {
+    background: var(--brand-bone);
+  }
+
+  .brand-bag__stepper span {
+    min-width: 34px;
+    text-align: center;
+    font: 600 0.8125rem / 1 var(--brand-font-mono);
+  }
+
+  .brand-bag__remove {
+    font: var(--brand-type-label);
+    font-size: 0.625rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.38);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color var(--brand-transition);
+  }
+
+  .brand-bag__remove:hover {
+    color: var(--brand-navy);
+  }
+
+  .brand-bag__line-total {
+    margin: 0;
+    font: 600 clamp(0.9375rem, 1.5vw, 1.125rem) / 1 var(--brand-font-display);
+    white-space: nowrap;
+  }
+
+  .brand-bag__keep {
+    display: inline-block;
+    margin-top: 22px;
+    font: var(--brand-type-label);
+    font-size: 0.65625rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: rgb(var(--brand-navy-rgb) / 0.5);
+    border-bottom: 1px solid rgb(var(--brand-navy-rgb) / 0.25);
+  }
+
+  /* --- Summary ----------------------------------------------------------- */
+
+  .brand-bag__summary {
+    min-width: 0;
+    background: var(--brand-bone);
+    padding: clamp(1.375rem, 2.4vw, 2rem);
+  }
+
+  .brand-bag__summary-label {
+    margin: 0;
+    padding-bottom: 18px;
+    border-bottom: 1px solid rgb(var(--brand-navy-rgb) / 0.14);
+    font: var(--brand-type-label);
+    font-size: 0.65625rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.45);
+  }
+
+  .brand-bag__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    padding: 18px 0;
+  }
+
+  .brand-bag__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    font: 400 0.875rem / 1 var(--brand-font-display);
+    color: rgb(var(--brand-navy-rgb) / 0.62);
+  }
+
+  .brand-bag__row span:last-child {
+    color: var(--brand-navy);
+    font-weight: 600;
+  }
+
+  .brand-bag__total {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 0;
+    border-top: 1px solid rgb(var(--brand-navy-rgb) / 0.14);
+  }
+
+  .brand-bag__total span:first-child {
+    font: var(--brand-type-button);
+    font-size: 0.75rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+  }
+
+  .brand-bag__total span:last-child {
+    font: 800 clamp(1.375rem, 2.2vw, 1.75rem) / 1 var(--brand-font-display);
+    letter-spacing: -0.02em;
+  }
+
+  .brand-bag__ship-hint {
+    margin: 0 0 16px;
+    padding: 12px 14px;
+    background: var(--brand-white);
+    font: 400 0.71875rem / 1.5 var(--brand-font-mono);
+    color: rgb(var(--brand-navy-rgb) / 0.55);
+  }
+
+  .brand-bag__checkout {
+    width: 100%;
+    padding: 19px;
+    border: 0;
+    border-radius: var(--brand-radius);
+    background: var(--brand-navy);
+    color: var(--brand-white);
+    font: var(--brand-type-button);
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color var(--brand-transition);
+  }
+
+  .brand-bag__checkout:hover {
+    background: var(--brand-navy-hover);
+  }
+
+  .brand-bag__payments {
+    margin-top: 14px;
+  }
+
+  .brand-bag__terms {
+    margin: 16px 0 0;
+    font: 400 0.6875rem / 1.55 var(--brand-font-mono);
+    color: rgb(var(--brand-navy-rgb) / 0.42);
+  }
+
+  /* --- Complete the set --------------------------------------------------- */
+
+  .brand-bag__set {
+    margin-top: clamp(3rem, 6vw, 6rem);
+    padding-top: clamp(1.5rem, 2.6vw, 2.25rem);
+    border-top: 1px solid rgb(var(--brand-navy-rgb) / 0.14);
+  }
+
+  .brand-bag__set-label {
+    margin: 0 0 clamp(1.125rem, 2vw, 1.625rem);
+    font: var(--brand-type-label);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.45);
+  }
+
+  .brand-bag__set-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(0.625rem, 1.4vw, 1.125rem);
+  }
+
+  .brand-bag__suggestion {
+    display: block;
+    min-width: 0;
+    text-decoration: none;
+    color: var(--brand-navy);
+  }
+
+  .brand-bag__suggestion-frame {
+    position: relative;
+    display: block;
+    aspect-ratio: 3 / 4;
+    background: var(--brand-bone);
+    overflow: hidden;
+  }
+
+  .brand-bag__suggestion-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .brand-bag__suggestion-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 12px;
+  }
+
+  .brand-bag__suggestion-name {
+    font: 700 clamp(0.875rem, 1.3vw, 1.0625rem) / 1.15 var(--brand-font-display);
+    letter-spacing: -0.018em;
+  }
+
+  .brand-bag__suggestion-price {
+    font: 600 0.8125rem / 1 var(--brand-font-display);
+    white-space: nowrap;
+  }
+
+  .brand-bag__suggestion-state {
+    display: block;
+    padding-top: 5px;
+  }
+
+  @media screen and (min-width: 900px) {
+    .brand-bag__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+    }
+
+    /* Clears the sticky header, so the summary never slides under it. */
+    .brand-bag__summary {
+      position: sticky;
+      top: 90px;
+    }
+
+    .brand-bag__set-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Bag",
+  "tag": "div",
+  "class": "brand-cart-section",
+  "enabled_on": { "templates": ["cart"] },
+  "settings": [
+    {
+      "type": "text",
+      "id": "crumb_root",
+      "label": "Breadcrumb root",
+      "default": "ALL JERSEYS"
+    },
+    {
+      "type": "text",
+      "id": "crumb_current",
+      "label": "Breadcrumb current",
+      "default": "CART"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "YOUR BAG"
+    },
+    {
+      "type": "text",
+      "id": "count_singular",
+      "label": "Count, one item",
+      "default": "ITEM"
+    },
+    {
+      "type": "text",
+      "id": "count_plural",
+      "label": "Count, several items",
+      "default": "ITEMS"
+    },
+    {
+      "type": "text",
+      "id": "size_word",
+      "label": "Word before the size",
+      "default": "SIZE"
+    },
+    {
+      "type": "text",
+      "id": "decrease_label",
+      "label": "Decrease quantity",
+      "default": "Decrease quantity"
+    },
+    {
+      "type": "text",
+      "id": "increase_label",
+      "label": "Increase quantity",
+      "default": "Increase quantity"
+    },
+    {
+      "type": "text",
+      "id": "remove_label",
+      "label": "Remove",
+      "default": "REMOVE"
+    },
+    {
+      "type": "text",
+      "id": "keep_label",
+      "label": "Back to shopping",
+      "default": "← KEEP BROWSING"
+    },
+    {
+      "type": "header",
+      "content": "Summary"
+    },
+    {
+      "type": "text",
+      "id": "summary_label",
+      "label": "Heading",
+      "default": "ORDER SUMMARY"
+    },
+    {
+      "type": "text",
+      "id": "subtotal_label",
+      "label": "Subtotal",
+      "default": "Subtotal"
+    },
+    {
+      "type": "text",
+      "id": "shipping_label",
+      "label": "Shipping",
+      "default": "Shipping"
+    },
+    {
+      "type": "text",
+      "id": "shipping_free",
+      "label": "Shipping when it is free",
+      "default": "Free"
+    },
+    {
+      "type": "text",
+      "id": "shipping_unknown",
+      "label": "Shipping before checkout",
+      "info": "Shopify works the real cost out at checkout, so it cannot be shown here.",
+      "default": "At checkout"
+    },
+    {
+      "type": "range",
+      "id": "free_shipping_over",
+      "label": "Free shipping over",
+      "min": 0,
+      "max": 500,
+      "step": 25,
+      "unit": "SAR",
+      "default": 200
+    },
+    {
+      "type": "text",
+      "id": "shipping_hint",
+      "label": "Nudge towards free shipping",
+      "info": "[amount] is replaced with how much is still needed.",
+      "default": "Add [amount] more for free delivery."
+    },
+    {
+      "type": "text",
+      "id": "total_label",
+      "label": "Total",
+      "default": "TOTAL"
+    },
+    {
+      "type": "text",
+      "id": "checkout_label",
+      "label": "Checkout button",
+      "default": "CHECKOUT"
+    },
+    {
+      "type": "text",
+      "id": "terms",
+      "label": "Small print",
+      "default": "2–7 business days in Saudi Arabia · 3-day returns, unworn with tags"
+    },
+    {
+      "type": "header",
+      "content": "Complete the set"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection to draw from",
+      "info": "Defaults to all products. Anything already in the bag is left out."
+    },
+    {
+      "type": "text",
+      "id": "set_label",
+      "label": "Heading",
+      "default": "COMPLETE THE SET"
+    },
+    {
+      "type": "range",
+      "id": "suggestion_limit",
+      "label": "Jerseys suggested",
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "header",
+      "content": "Empty bag"
+    },
+    {
+      "type": "text",
+      "id": "empty_heading",
+      "label": "Heading",
+      "default": "Nothing in the bag yet."
+    },
+    {
+      "type": "textarea",
+      "id": "empty_body",
+      "label": "Body",
+      "default": "Five designs, each kept to a small run. Sizes go and stay gone for a while."
+    },
+    {
+      "type": "text",
+      "id": "empty_action",
+      "label": "Button",
+      "default": "BROWSE ALL FIVE"
+    }
+  ]
+}
+{% endschema %}

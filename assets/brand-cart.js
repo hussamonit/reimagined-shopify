@@ -61,3 +61,57 @@ export async function addToCart({ variantId, target, quantity = 1, source = 'bra
     throw error;
   }
 }
+
+/**
+ * Changes the quantity of a line already in the bag, or removes it with a
+ * quantity of zero.
+ *
+ * Asks Shopify to re-render one section along with the change, so the page can
+ * update the bag in place instead of reloading around it.
+ *
+ * @param {object} options
+ * @param {number} options.line - 1-based line index.
+ * @param {number} options.quantity
+ * @param {Element} options.target - Element to raise the event from.
+ * @param {string} [options.sectionId] - Section to have re-rendered.
+ * @returns {Promise<string | null>} The section's new HTML, when one was asked for.
+ */
+export async function changeCartLine({ line, quantity, target, sectionId }) {
+  const deferred = CartLinesUpdateEvent.createPromise();
+
+  target.dispatchEvent(
+    new CartLinesUpdateEvent({
+      action: quantity === 0 ? 'remove' : 'update',
+      context: 'cart',
+      lines: [{ merchandiseId: String(line), quantity }],
+      promise: deferred.promise,
+    })
+  );
+
+  try {
+    /** @type {Record<string, unknown>} */
+    const body = { line, quantity };
+    if (sectionId) body.sections = sectionId;
+
+    const cart = await fetch(Theme.routes.cart_change_url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(body),
+    }).then((response) => response.json());
+
+    deferred.resolve({
+      cart: CartLinesUpdateEvent.createCartFromAjaxResponse(cart),
+      detail: {
+        items: cart.items,
+        source: 'brand-cart',
+        itemCount: cart.item_count,
+        didError: false,
+      },
+    });
+
+    return sectionId ? (cart.sections?.[sectionId] ?? null) : null;
+  } catch (error) {
+    deferred.reject(error);
+    throw error;
+  }
+}
