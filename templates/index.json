@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "intro_loader": {
@@ -10,6 +19,7 @@
       "type": "brand-hero",
       "settings": {
         "video": "shopify://files/videos/looped_hero.mp4",
+        "video_src": "",
         "eyebrow": "SS26 · FIVE MOMENTS",
         "tagline_alt": "Wear The Moment",
         "cta_label": "SHOP NOW",
@@ -23,22 +33,35 @@
       "blocks": {
         "phrase_designs": {
           "type": "phrase",
-          "settings": { "phrase": "ORIGINAL DESIGNS" }
+          "settings": {
+            "phrase": "ORIGINAL DESIGNS"
+          }
         },
         "phrase_runs": {
           "type": "phrase",
-          "settings": { "phrase": "LIMITED RUNS" }
+          "settings": {
+            "phrase": "LIMITED RUNS"
+          }
         },
         "phrase_rare": {
           "type": "phrase",
-          "settings": { "phrase": "RARE BY DESIGN" }
+          "settings": {
+            "phrase": "RARE BY DESIGN"
+          }
         },
         "phrase_delivery": {
           "type": "phrase",
-          "settings": { "phrase": "2–7 BUSINESS DAYS IN SAUDI ARABIA" }
+          "settings": {
+            "phrase": "2–7 BUSINESS DAYS IN SAUDI ARABIA"
+          }
         }
       },
-      "block_order": ["phrase_designs", "phrase_runs", "phrase_rare", "phrase_delivery"],
+      "block_order": [
+        "phrase_designs",
+        "phrase_runs",
+        "phrase_rare",
+        "phrase_delivery"
+      ],
       "settings": {
         "enabled": true,
         "speed": 30
@@ -58,6 +81,7 @@
     "featured_jersey": {
       "type": "brand-featured-jersey",
       "settings": {
+        "product": "saudi-arabia-al-suqour-green-jersey-wc2026",
         "label": "01 / 05 · THE FEATURE",
         "size_label": "Size",
         "select_label": "SELECT SIZE",
@@ -72,6 +96,7 @@
         "limit": 8,
         "columns": "4",
         "skip_featured": true,
+        "exclude": "saudi-arabia-al-suqour-green-jersey-wc2026",
         "quick_add": true
       }
     },
@@ -103,11 +128,16 @@
           }
         }
       },
-      "block_order": ["card_design", "card_cloth", "card_detail"],
+      "block_order": [
+        "card_design",
+        "card_cloth",
+        "card_detail"
+      ],
       "settings": {
         "eyebrow": "OUR CRAFT",
         "heading": "Kept deliberately small.",
-        "intro": "Each design is cut in a small run and left there. Rare on purpose, not by accident — the kind of shirt you rarely see coming back at you across a stadium."
+        "intro": "Each design is cut in a small run and left there. Rare on purpose, not by accident — the kind of shirt you rarely see coming back at you across a stadium.",
+        "image": "shopify://shop_images/Crest_zoom.png"
       }
     },
     "story": {
@@ -116,7 +146,8 @@
         "eyebrow": "THE STORY",
         "heading": "Heritage, not merchandise.",
         "body_one": "Every jersey starts with a country or a club — the colours it has always worn, the songs its people sing, the way a city empties out on a matchday. We read the heritage first: what the badge meant before it was a logo, and what the fans have made of it since.",
-        "body_two": "Then we design something new from it. Not a reprint, not a replica — an original built out of the same material a supporter is made of: memory, belonging, and one moment nobody there will ever forget."
+        "body_two": "Then we design something new from it. Not a reprint, not a replica — an original built out of the same material a supporter is made of: memory, belonging, and one moment nobody there will ever forget.",
+        "image": "shopify://shop_images/ourstory_jpg.jpg"
       }
     },
     "newsletter": {
