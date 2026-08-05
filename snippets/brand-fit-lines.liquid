@@ -1,0 +1,72 @@
+{% doc %}
+  The five size lines, as a list.
+
+  Parsed from one theme setting so the product page's fit guide and the size
+  guide page cannot drift apart — the measurements are the owner's and are only
+  ever written down once.
+
+  Each line reads: code | chest | length | note, with the note optional.
+
+  @example
+  {% render 'brand-fit-lines' %}
+{% enddoc %}
+
+{%- assign lines = settings.size_measurements | newline_to_br | split: '<br />' -%}
+
+<ul class="brand-fit">
+  {%- for line in lines -%}
+    {%- liquid
+      assign row = line | strip | split: '|'
+      if row.size < 3
+        continue
+      endif
+
+      assign code = row[0] | strip
+      assign chest = row[1] | strip
+      assign length = row[2] | strip
+      assign note = row[3] | strip
+    -%}
+    <li>
+      <span class="brand-fit__code">{{ code }}</span>
+      <span>
+        &mdash; {{ settings.measure_chest_label | default: 'chest' }} {{ chest }},
+        {{ settings.measure_length_label | default: 'length' }} {{ length }}
+        {%- if note != blank %} <span class="brand-fit__note">({{ note }})</span>{% endif -%}
+      </span>
+    </li>
+  {%- endfor -%}
+</ul>
+
+{% stylesheet %}
+  .brand-fit {
+    margin: 13px 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .brand-fit li {
+    display: flex;
+    gap: 6px;
+    font: var(--brand-type-body);
+    font-size: 0.96875rem;
+    line-height: 1.6;
+    color: rgb(var(--brand-navy-rgb) / 0.6);
+    text-wrap: pretty;
+  }
+
+  .brand-fit__code {
+    flex: none;
+    min-width: 2.5em;
+    font-family: var(--brand-font-mono);
+    font-size: 0.8125rem;
+    letter-spacing: 0.06em;
+    color: var(--brand-navy);
+  }
+
+  .brand-fit__note {
+    color: rgb(var(--brand-navy-rgb) / 0.45);
+  }
+{% endstylesheet %}

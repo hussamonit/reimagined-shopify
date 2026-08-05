@@ -2157,6 +2157,33 @@
         "id": "stock_label_sold_out",
         "label": "Label when sold out",
         "default": "SOLD OUT"
+      },
+      {
+        "type": "header",
+        "content": "Size measurements"
+      },
+      {
+        "type": "paragraph",
+        "content": "Edited once here. The product page's fit guide and the size guide page both read this, so the two can never disagree."
+      },
+      {
+        "type": "textarea",
+        "id": "size_measurements",
+        "label": "Measurements",
+        "info": "One size per line: code | chest | length | note. The note is optional.",
+        "default": "S | 48 | 67.5\nM | 50 | 70\nL | 52 | 72.5\nXL | 54 | 74.5\n2XL | 56 | 77.5"
+      },
+      {
+        "type": "text",
+        "id": "measure_chest_label",
+        "label": "Word for the first measurement",
+        "default": "chest"
+      },
+      {
+        "type": "text",
+        "id": "measure_length_label",
+        "label": "Word for the second measurement",
+        "default": "length"
       }
     ]
   }

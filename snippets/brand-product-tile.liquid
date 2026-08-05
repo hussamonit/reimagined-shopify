@@ -82,11 +82,21 @@
     {%- endif -%}
   </div>
 
-  <p class="brand-tile__meta">
-    {%- if accent -%}
-      <span class="brand-tile__dot" style="background: {{ accent }}"></span>
+  {%- comment -%}
+    Compact is the related-jerseys row at the foot of a product page: the stock
+    state moves up beside the number, so the price stands on its own.
+  {%- endcomment -%}
+  <p class="brand-tile__meta{% if compact %} brand-tile__meta--split{% endif %}">
+    <span class="brand-tile__number">
+      {%- if accent -%}
+        <span class="brand-tile__dot" style="background: {{ accent }}"></span>
+      {%- endif -%}
+      {{ position | prepend: '0' | slice: -2, 2 }}
+    </span>
+
+    {%- if compact -%}
+      {% render 'brand-stock-state', product: product, compact: true %}
     {%- endif -%}
-    {{ position | prepend: '0' | slice: -2, 2 }}
   </p>
 
   <h3 class="brand-tile__title">
@@ -99,7 +109,9 @@
 
   <p class="brand-tile__price">
     <span>{{ product.price | money }}</span>
-    {% render 'brand-stock-state', product: product, compact: true %}
+    {%- unless compact -%}
+      {% render 'brand-stock-state', product: product, compact: true %}
+    {%- endunless -%}
   </p>
 </article>
 
@@ -235,6 +247,23 @@
     font: var(--brand-type-label);
     letter-spacing: 0.12em;
     color: rgb(var(--brand-navy-rgb) / 0.5);
+  }
+
+  .brand-tile__meta--split {
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .brand-tile__number {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  /* The grid draws the closing line for this row, so the tiles do not. */
+  .brand-grid--flush {
+    border-top: var(--brand-rule);
+    border-bottom: 0;
   }
 
   .brand-tile__dot {

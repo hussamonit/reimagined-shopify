@@ -215,7 +215,22 @@
                 assign body = product.description
               endif
             -%}
-            {%- if body != blank -%}
+            {%- if block.type == 'fit_guide' -%}
+              {%- comment -%}
+                Measurements come from theme settings, so this row and the size
+                guide page always say the same thing.
+              {%- endcomment -%}
+              <details class="brand-acc__row" name="brand-product-accordion" {{ block.shopify_attributes }}>
+                <summary>
+                  <span>{{ block.settings.title }}</span>
+                  <span class="brand-acc__mark" aria-hidden="true"></span>
+                </summary>
+                <div class="brand-acc__body">
+                  {{ block.settings.body }}
+                  {% render 'brand-fit-lines' %}
+                </div>
+              </details>
+            {%- elsif body != blank -%}
               {%- comment -%}
                 A shared name makes the browser close the others — an exclusive
                 accordion with no script behind it.
@@ -954,6 +969,29 @@
           "id": "title",
           "label": "Title",
           "default": "DESCRIPTION"
+        }
+      ]
+    },
+    {
+      "type": "fit_guide",
+      "name": "Fit guide",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "FIT GUIDE"
+        },
+        {
+          "type": "richtext",
+          "id": "body",
+          "label": "Intro",
+          "default": "<p>Garment measurements, laid flat, in centimetres. Chest runs underarm seam to underarm seam; length runs from the highest point of the shoulder to the hem. Between two sizes, take the larger one.</p>"
+        },
+        {
+          "type": "paragraph",
+          "content": "The measurements themselves are edited once in theme settings, under Reimagined."
         }
       ]
     },

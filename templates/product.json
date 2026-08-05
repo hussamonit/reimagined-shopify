@@ -9,6 +9,13 @@
             "title": "DESCRIPTION"
           }
         },
+        "fit_guide": {
+          "type": "fit_guide",
+          "settings": {
+            "title": "FIT GUIDE",
+            "body": "<p>Garment measurements, laid flat, in centimetres. Chest runs underarm seam to underarm seam; length runs from the highest point of the shoulder to the hem. Between two sizes, take the larger one.</p>"
+          }
+        },
         "delivery": {
           "type": "row",
           "settings": {
@@ -24,7 +31,7 @@
           }
         }
       },
-      "block_order": ["description", "delivery", "returns"],
+      "block_order": ["description", "fit_guide", "delivery", "returns"],
       "settings": {
         "crumb_root": "ALL JERSEYS",
         "view_names": "FRONT, BACK, DETAIL, SIGNATURE",
@@ -41,7 +48,23 @@
         "notify_button": "NOTIFY ME",
         "notify_done": "You're on the list for this size."
       }
+    },
+    "moment": {
+      "type": "brand-moment",
+      "settings": {
+        "eyebrow": "THE MOMENT",
+        "meta": "DESIGNED IN BRAZIL · 23°33′ S · 46°38′ W\nNO LICENCES · NO REPLICAS"
+      }
+    },
+    "related": {
+      "type": "brand-related",
+      "settings": {
+        "heading": "The rest of the five.",
+        "link_label": "ALL JERSEYS →",
+        "limit": 4,
+        "columns": "4"
+      }
     }
   },
-  "order": ["main"]
+  "order": ["main", "moment", "related"]
 }
