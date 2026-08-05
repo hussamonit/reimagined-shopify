@@ -1,0 +1,18 @@
+{% doc %}
+  Shortens a size to its code.
+
+  Option values are often written out in full — "Small (S)", "Medium (M)" — which
+  is right for the cart and the order confirmation but far too long for a chip.
+  Where a short form is given in brackets, that is what gets shown; anything
+  without brackets is passed through untouched, so "XL" and "2XL" are safe.
+
+  Kept in one place so the shop filters, the featured jersey and the product page
+  can never disagree about how a size is written.
+
+  @param {string} label - The full option value.
+
+  @example
+  {% render 'brand-size-label', label: value.label %}
+{% enddoc %}
+
+{{- label | split: '(' | last | remove: ')' | strip -}}

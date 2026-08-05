@@ -7,11 +7,14 @@
     the count and the sort control.
   endcomment
 
+  comment
+    Matched on shape rather than on name. Shopify's parameter names and labels
+    vary with how the option is set up, so anything that behaves like a list of
+    values gets a chip row and is labelled with whatever Shopify calls it.
+  endcomment
   for filter in collection.filters
-    if filter.param_name == 'filter.v.availability'
+    if filter.type == 'boolean' or filter.param_name contains 'availability'
       assign availability_filter = filter
-    elsif filter.param_name contains 'option' and filter.label == section.settings.size_label
-      assign size_filter = filter
     endif
   endfor
 
@@ -48,67 +51,92 @@
   <div class="brand-shop__bar-inner">
     <div class="brand-shop__filters">
       {%- if availability_filter -%}
-        <div class="brand-shop__chips">
-          {%- liquid
-            assign availability_url = collection.url
-            if availability_filter.true_value.active
-              assign availability_url = availability_filter.true_value.url_to_remove
-            elsif availability_filter.false_value.active
-              assign availability_url = availability_filter.false_value.url_to_remove
-            endif
-            assign availability_off = true
-            if availability_filter.active_values.size > 0
-              assign availability_off = false
-            endif
-          -%}
+        {%- comment -%}
+          Rendered from the filter's own values rather than from true_value and
+          false_value, because Shopify hands availability over as a boolean on
+          some setups and as a plain list on others. Going through values covers
+          both, and ALL is just the link that drops the whole filter.
+        {%- endcomment -%}
+        {%- liquid
+          assign availability_off = true
+          if availability_filter.active_values.size > 0
+            assign availability_off = false
+          endif
+          assign availability_reset = availability_filter.active_values.first.url_to_remove | default: collection.url
+        -%}
 
-          <a
-            href="{{ availability_url }}"
-            class="brand-chip brand-chip--pill"
-            aria-current="{{ availability_off }}"
-          >
+        <div class="brand-shop__chips">
+          <a href="{{ availability_reset }}" class="brand-chip brand-chip--pill" aria-current="{{ availability_off }}">
             {{- section.settings.all_label -}}
           </a>
 
-          <a
-            href="{% if availability_filter.true_value.active %}{{ availability_filter.true_value.url_to_remove }}{% else %}{{ availability_filter.true_value.url_to_add }}{% endif %}"
-            class="brand-chip brand-chip--pill"
-            aria-current="{{ availability_filter.true_value.active }}"
-          >
-            {{- section.settings.available_label -}}
-          </a>
+          {%- for value in availability_filter.values -%}
+            {%- if value.count == 0 and value.active == false -%}
+              {%- continue -%}
+            {%- endif -%}
 
-          {%- if availability_filter.false_value.count > 0 -%}
+            {%- liquid
+              assign chip_label = value.label | upcase
+              if value.value == '1'
+                assign chip_label = section.settings.available_label
+              elsif value.value == '0'
+                assign chip_label = section.settings.sold_out_label
+              endif
+            -%}
+
             <a
-              href="{% if availability_filter.false_value.active %}{{ availability_filter.false_value.url_to_remove }}{% else %}{{ availability_filter.false_value.url_to_add }}{% endif %}"
+              href="{% if value.active %}{{ value.url_to_remove }}{% else %}{{ value.url_to_add }}{% endif %}"
               class="brand-chip brand-chip--pill"
-              aria-current="{{ availability_filter.false_value.active }}"
+              aria-current="{{ value.active }}"
             >
-              {{- section.settings.sold_out_label -}}
+              {{- chip_label -}}
             </a>
-          {%- endif -%}
+          {%- endfor -%}
         </div>
       {%- endif -%}
 
-      {%- if availability_filter and size_filter -%}
-        <span class="brand-shop__divider" aria-hidden="true"></span>
-      {%- endif -%}
+      {%- for filter in collection.filters -%}
+        {%- comment -%}
+          Size is the one that matters today, but anything list-shaped that gets
+          switched on in Search & Discovery lands here with its own label.
+          Availability is skipped — it has already had its own row above, and
+          without this it comes round a second time as In stock / Out of stock.
+        {%- endcomment -%}
+        {%- if filter.type != 'list' or filter.values.size == 0 -%}
+          {%- continue -%}
+        {%- endif -%}
 
-      {%- if size_filter -%}
+        {%- if availability_filter and filter.param_name == availability_filter.param_name -%}
+          {%- continue -%}
+        {%- endif -%}
+
+        <span class="brand-shop__divider" aria-hidden="true"></span>
+
         <div class="brand-shop__sizes">
-          <span class="brand-shop__sizes-label">{{ size_filter.label }}</span>
+          <span class="brand-shop__sizes-label">{{ filter.label }}</span>
           <div class="brand-shop__chips brand-shop__chips--size">
-            {%- for value in size_filter.values -%}
+            {%- for value in filter.values -%}
               <a
                 href="{% if value.active %}{{ value.url_to_remove }}{% else %}{{ value.url_to_add }}{% endif %}"
                 class="brand-chip brand-chip--square"
                 aria-current="{{ value.active }}"
+                aria-label="{{ value.label }}"
               >
-                {{- value.label -}}
+                {%- render 'brand-size-label', label: value.label -%}
               </a>
             {%- endfor -%}
           </div>
         </div>
+      {%- endfor -%}
+
+      {%- comment -%}
+        Only in the editor: says plainly whether Shopify is returning any
+        filters, so an empty bar can be told apart from a broken one.
+      {%- endcomment -%}
+      {%- if request.design_mode and collection.filters.size == 0 -%}
+        <span class="brand-shop__note">
+          No filters yet — install Search &amp; Discovery, then switch on Availability and Size for this collection.
+        </span>
       {%- endif -%}
 
       {%- if has_active_filters -%}
@@ -154,6 +182,13 @@
         </form>
       {%- endif -%}
     </div>
+
+    {%- comment -%}
+      A zero-height flex item that forces a wrap. On phones it splits the bar
+      into exactly two rows — availability and sort above, sizes and the count
+      below — rather than leaving the wrapping to whatever happens to fit.
+    {%- endcomment -%}
+    <span class="brand-shop__break" aria-hidden="true"></span>
   </div>
 </brand-collection>
 
@@ -222,15 +257,15 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 18px;
+    gap: 14px;
     flex-wrap: wrap;
-    padding: 14px var(--brand-gutter);
+    padding: 10px var(--brand-gutter);
   }
 
   .brand-shop__filters {
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 12px;
     flex-wrap: wrap;
     min-width: 0;
   }
@@ -238,11 +273,7 @@
   .brand-shop__chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 7px;
-  }
-
-  .brand-shop__chips--size {
-    gap: 6px;
+    gap: 5px;
   }
 
   .brand-chip {
@@ -275,30 +306,30 @@
   }
 
   .brand-chip--pill {
-    padding: 9px 17px;
+    padding: 7px 13px;
     border-radius: var(--brand-radius-pill);
-    font-size: 0.65625rem;
-    letter-spacing: 0.11em;
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
   }
 
   .brand-chip--square {
-    min-width: 40px;
-    padding: 9px 11px;
+    min-width: 34px;
+    padding: 7px 9px;
     border-radius: var(--brand-radius);
-    font-size: 0.6875rem;
+    font-size: 0.625rem;
     letter-spacing: 0;
   }
 
   .brand-shop__divider {
     width: 1px;
-    height: 22px;
+    height: 18px;
     background: rgb(var(--brand-navy-rgb) / 0.14);
   }
 
   .brand-shop__sizes {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 9px;
     min-width: 0;
   }
 
@@ -322,6 +353,14 @@
     text-transform: uppercase;
     text-decoration: none;
     color: rgb(var(--brand-navy-rgb) / 0.55);
+  }
+
+  .brand-shop__note {
+    font: var(--brand-type-label);
+    font-size: 0.65625rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.42);
   }
 
   .brand-shop__meta {
@@ -432,51 +471,81 @@
   /* Phones: the bar becomes two rows and the chips wrap onto their own lines.
      A sideways-scrolling strip was tried and dropped — it hid half the sizes
      off the edge of the screen. */
+  .brand-shop__break {
+    display: none;
+  }
+
+  /* Phones: two rows, not three. The grouping wrappers step out of the layout
+     so every control becomes a flex item of the bar itself and can be ordered
+     freely — availability and sort on the first row, sizes, count and clear on
+     the second. */
   @media screen and (max-width: 759px) {
     .brand-shop__bar-inner {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 11px;
-      padding: 12px var(--brand-gutter);
+      align-items: center;
+      gap: 6px 8px;
+      padding: 8px var(--brand-gutter);
     }
 
-    .brand-shop__filters {
-      width: 100%;
-      gap: 10px;
+    .brand-shop__filters,
+    .brand-shop__sizes,
+    .brand-shop__meta {
+      display: contents;
     }
 
-    .brand-shop__chips {
-      gap: 6px;
-    }
-
+    /* The chips are obviously sizes; the word only costs a row. */
+    .brand-shop__sizes-label,
     .brand-shop__divider {
       display: none;
     }
 
-    .brand-shop__sizes {
-      width: 100%;
-      gap: 10px;
+    .brand-shop__chips {
+      order: 1;
     }
 
-    /* The five sizes share the width rather than overflowing it. */
+    .brand-shop__sort {
+      order: 2;
+      margin-left: auto;
+    }
+
+    .brand-shop__break {
+      display: block;
+      flex: 1 0 100%;
+      height: 0;
+      order: 3;
+    }
+
     .brand-shop__chips--size {
-      flex: 1 1 0;
-      min-width: 0;
+      order: 4;
+      flex: 0 1 auto;
+    }
+
+    .brand-shop__count {
+      order: 5;
+    }
+
+    .brand-shop__clear {
+      order: 6;
+    }
+
+    .brand-chip--pill {
+      padding: 6px 11px;
+      font-size: 0.5625rem;
+      letter-spacing: 0.08em;
     }
 
     .brand-chip--square {
-      flex: 1 1 0;
-      min-width: 0;
-      padding: 13px 4px;
-    }
-
-    .brand-shop__meta {
-      width: 100%;
-      justify-content: space-between;
+      min-width: 30px;
+      padding: 6px 7px;
+      font-size: 0.5625rem;
     }
 
     .brand-shop__sort select {
-      flex: 0 1 auto;
+      padding: 6px 24px 6px 10px;
+      font-size: 0.5625rem;
+    }
+
+    .brand-shop__count {
+      font-size: 0.5625rem;
     }
   }
 {% endstylesheet %}
@@ -534,13 +603,6 @@
     {
       "type": "paragraph",
       "content": "Filters come from Shopify's Search & Discovery app. Install it, then switch on the Availability and Size filters for this collection. Without it, only the count and sort appear."
-    },
-    {
-      "type": "text",
-      "id": "size_label",
-      "label": "Name of the size filter",
-      "default": "Size",
-      "info": "Must match the product option name exactly."
     },
     {
       "type": "text",

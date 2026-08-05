@@ -18,7 +18,14 @@
 {%- liquid
   assign year = product.metafields.jersey.year.value
   assign accent = product.metafields.jersey.accent.value
-  assign blurb = product.description | strip_html | strip | truncate: 96
+
+  comment
+    The line under the name is the moment — "Lusail. 2–1." — not the product
+    description, which carries the make and belongs on the product page. It has
+    its own metafield so the two can say different things. Left empty, the tile
+    simply shows name and price.
+  endcomment
+  assign blurb = product.metafields.jersey.tagline.value | strip_html | strip
 
   comment
     `render` does not inherit the caller's scope, so forloop is out of reach —
@@ -63,11 +70,12 @@
             type="button"
             class="brand-tile__size"
             data-variant-id="{{ variant.id }}"
+            aria-label="{{ variant.title }}"
             {% unless variant.available %}
               disabled
             {% endunless %}
           >
-            {{- variant.title -}}
+            {%- render 'brand-size-label', label: variant.title -%}
           </button>
         {%- endfor -%}
       </brand-quick-add>

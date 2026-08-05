@@ -57,7 +57,11 @@
         <a href="{{ product.url }}">{{ product.title }}</a>
       </h2>
 
-      {%- assign blurb = product.description | strip_html | strip -%}
+      {%- comment -%}
+        The moment line, same source as the tiles. The product description
+        carries the make and stays on the product page.
+      {%- endcomment -%}
+      {%- assign blurb = product.metafields.jersey.tagline.value | strip_html | strip -%}
       {%- if blurb != blank -%}
         <p class="brand-feature__blurb">{{ blurb }}</p>
       {%- endif -%}
@@ -78,11 +82,12 @@
                 class="brand-feature__size"
                 data-variant-id="{{ variant.id }}"
                 aria-pressed="false"
+                aria-label="{{ variant.title }}"
                 {% unless variant.available %}
                   disabled
                 {% endunless %}
               >
-                {{- variant.title -}}
+                {%- render 'brand-size-label', label: variant.title -%}
               </button>
             {%- endfor -%}
           </div>
