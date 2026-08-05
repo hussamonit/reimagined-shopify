@@ -2116,5 +2116,41 @@
         "default": "equal-width-buttons"
       }
     ]
+  },
+  {
+    "name": "Reimagined",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Stock state is worked out from inventory rather than stored per product, so it cannot drift out of date. This threshold is used everywhere the state appears."
+      },
+      {
+        "type": "range",
+        "id": "low_stock_threshold",
+        "label": "Low stock at or below this many left",
+        "min": 1,
+        "max": 25,
+        "step": 1,
+        "default": 6
+      },
+      {
+        "type": "text",
+        "id": "stock_label_healthy",
+        "label": "Label when stock is healthy",
+        "default": "SMALL RUN · RARE BY DESIGN"
+      },
+      {
+        "type": "text",
+        "id": "stock_label_low",
+        "label": "Label when stock is low",
+        "default": "LOW STOCK"
+      },
+      {
+        "type": "text",
+        "id": "stock_label_sold_out",
+        "label": "Label when sold out",
+        "default": "SOLD OUT"
+      }
+    ]
   }
 ]

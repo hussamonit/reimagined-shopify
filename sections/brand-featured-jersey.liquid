@@ -1,0 +1,357 @@
+{%- liquid
+  assign product = section.settings.product
+
+  comment
+    Falls back to the first jersey in the store so the section is never an
+    invisible gap on a fresh install. The picker always wins.
+  endcomment
+  if product == blank
+    assign product = collections.all.products.first
+  endif
+
+  assign year = product.metafields.jersey.year.value
+  assign accent = product.metafields.jersey.accent.value
+-%}
+
+{%- if product == blank -%}
+  {%- if request.design_mode -%}
+    <p class="brand-feature__empty">Pick a jersey for this section.</p>
+  {%- endif -%}
+{%- else -%}
+  {%- comment -%}
+    Carries the #shop anchor the hero button points at.
+  {%- endcomment -%}
+  <section class="brand-feature" id="shop">
+    <div class="brand-feature__frame" data-reveal="0">
+      {%- if product.featured_media -%}
+        {{
+          product.featured_media
+          | image_url: width: 1600
+          | image_tag:
+            width: 800,
+            widths: '400, 600, 800, 1200, 1600',
+            sizes: '(min-width: 760px) 50vw, 100vw',
+            alt: product.featured_media.alt
+            | default: product.title
+        }}
+      {%- else -%}
+        {{ 'product-apparel-2' | placeholder_svg_tag: 'brand-feature__placeholder' }}
+      {%- endif -%}
+    </div>
+
+    <div class="brand-feature__copy" data-reveal="110">
+      {%- if year != blank -%}
+        <span class="brand-feature__year" {% if accent %}style="color: {{ accent }}"{% endif %} aria-hidden="true">
+          {{- year -}}
+        </span>
+      {%- endif -%}
+
+      <p class="brand-feature__label">
+        {%- if accent -%}
+          <span class="brand-feature__dot" style="background: {{ accent }}"></span>
+        {%- endif -%}
+        {{ section.settings.label }}
+      </p>
+
+      <h2 class="brand-feature__title">
+        <a href="{{ product.url }}">{{ product.title }}</a>
+      </h2>
+
+      {%- assign blurb = product.description | strip_html | strip -%}
+      {%- if blurb != blank -%}
+        <p class="brand-feature__blurb">{{ blurb }}</p>
+      {%- endif -%}
+
+      <p class="brand-feature__price">
+        <span>{{ product.price | money }}</span>
+        {% render 'brand-stock-state', product: product, style: 'pill' %}
+      </p>
+
+      {%- if product.available -%}
+        <brand-quick-add class="brand-feature__buy" data-select="true">
+          <p class="brand-feature__size-label">{{ section.settings.size_label }}</p>
+
+          <div class="brand-feature__sizes">
+            {%- for variant in product.variants -%}
+              <button
+                type="button"
+                class="brand-feature__size"
+                data-variant-id="{{ variant.id }}"
+                aria-pressed="false"
+                {% unless variant.available %}
+                  disabled
+                {% endunless %}
+              >
+                {{- variant.title -}}
+              </button>
+            {%- endfor -%}
+          </div>
+
+          {%- comment -%}
+            Starts disabled and reading SELECT SIZE, the same wording the
+            product page's sticky bar uses, rather than failing silently on a
+            press with no size chosen.
+          {%- endcomment -%}
+          <button type="button" class="brand-feature__add" data-add ref="addButton" disabled>
+            <span ref="addLabel" data-ready-label="{{ section.settings.add_label | escape }}">
+              {{- section.settings.select_label -}}
+            </span>
+          </button>
+        </brand-quick-add>
+      {%- endif -%}
+
+      {%- if section.settings.terms != blank -%}
+        <p class="brand-feature__terms">{{ section.settings.terms }}</p>
+      {%- endif -%}
+    </div>
+  </section>
+{%- endif -%}
+
+{% stylesheet %}
+  .brand-feature {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    border-bottom: var(--brand-rule);
+  }
+
+  .brand-feature__empty {
+    padding: var(--brand-section-padding) var(--brand-gutter);
+    font: var(--brand-type-label);
+    letter-spacing: var(--brand-tracking-label);
+    text-transform: uppercase;
+    color: var(--brand-label-muted);
+  }
+
+  .brand-feature__frame {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    background: var(--brand-bone);
+    overflow: hidden;
+  }
+
+  .brand-feature__frame img,
+  .brand-feature__placeholder {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .brand-feature__copy {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(2rem, 5vw, 4.75rem);
+    padding-left: clamp(1.375rem, 2.4vw, 2.125rem);
+    border-left: var(--brand-rule);
+  }
+
+  .brand-feature__year {
+    position: absolute;
+    right: -12px;
+    bottom: 0;
+    z-index: -1;
+    font: 900 clamp(5rem, 8vw, 7.75rem) / 0.78 var(--brand-font-display);
+    letter-spacing: var(--brand-tracking-year);
+    opacity: 0.42;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .brand-feature__label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    font: var(--brand-type-label);
+    font-size: 0.71875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.5);
+  }
+
+  .brand-feature__dot {
+    flex: none;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+  }
+
+  .brand-feature__title {
+    margin: 20px 0 0;
+    font: 800 clamp(2.125rem, 4.4vw, 3.75rem) / 0.98 var(--brand-font-display);
+    letter-spacing: -0.03em;
+  }
+
+  .brand-feature__title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .brand-feature__title a:hover {
+    color: var(--brand-body-muted);
+  }
+
+  .brand-feature__blurb {
+    margin: 20px 0 0;
+    max-width: 440px;
+    font: var(--brand-type-body);
+    font-size: 1rem;
+    line-height: 1.6;
+    color: rgb(var(--brand-navy-rgb) / 0.66);
+    text-wrap: pretty;
+  }
+
+  .brand-feature__price {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin: 30px 0 0;
+  }
+
+  .brand-feature__price > span:first-child {
+    font: 600 1.25rem / 1 var(--brand-font-display);
+  }
+
+  .brand-feature__size-label {
+    margin: 24px 0 0;
+    font: var(--brand-type-label);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.5);
+  }
+
+  .brand-feature__sizes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .brand-feature__size {
+    padding: 11px 20px;
+    border: 1px solid rgb(var(--brand-navy-rgb) / 0.24);
+    border-radius: var(--brand-radius);
+    background: var(--brand-white);
+    color: var(--brand-navy);
+    font: var(--brand-type-label);
+    font-size: 0.75rem;
+    line-height: 1;
+    letter-spacing: 0;
+    cursor: pointer;
+    transition:
+      border-color var(--brand-transition),
+      background-color var(--brand-transition),
+      color var(--brand-transition);
+  }
+
+  .brand-feature__size:hover {
+    border-color: var(--brand-navy);
+  }
+
+  .brand-feature__size[aria-pressed='true'] {
+    background: var(--brand-navy);
+    border-color: var(--brand-navy);
+    color: var(--brand-white);
+  }
+
+  .brand-feature__size[disabled] {
+    opacity: 0.4;
+    cursor: default;
+    text-decoration: line-through;
+  }
+
+  .brand-feature__add {
+    margin: 26px 0 0;
+    max-width: 420px;
+    padding: 18px 30px;
+    border: 0;
+    border-radius: var(--brand-radius);
+    background: var(--brand-navy);
+    color: var(--brand-white);
+    font: var(--brand-type-button);
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color var(--brand-transition);
+  }
+
+  .brand-feature__add:hover:not([disabled]) {
+    background: var(--brand-navy-hover);
+  }
+
+  .brand-feature__add[disabled] {
+    background: rgb(var(--brand-navy-rgb) / 0.35);
+    cursor: default;
+  }
+
+  .brand-feature__terms {
+    margin: 16px 0 0;
+    font: 400 0.71875rem / 1.5 var(--brand-font-mono);
+    color: rgb(var(--brand-navy-rgb) / 0.45);
+  }
+
+  @media screen and (max-width: 759px) {
+    .brand-feature__copy {
+      padding: clamp(2rem, 5vw, 4.75rem) var(--brand-gutter);
+      border-left: 0;
+    }
+
+    .brand-feature__size {
+      min-height: var(--brand-tap-target);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Featured jersey",
+  "tag": "div",
+  "class": "brand-feature-section",
+  "enabled_on": { "templates": ["index"] },
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Jersey"
+    },
+    {
+      "type": "text",
+      "id": "label",
+      "label": "Eyebrow",
+      "default": "01 / 05 · THE FEATURE"
+    },
+    {
+      "type": "text",
+      "id": "size_label",
+      "label": "Size heading",
+      "default": "Size"
+    },
+    {
+      "type": "text",
+      "id": "select_label",
+      "label": "Button before a size is chosen",
+      "default": "SELECT SIZE"
+    },
+    {
+      "type": "text",
+      "id": "add_label",
+      "label": "Button once a size is chosen",
+      "default": "ADD TO CART"
+    },
+    {
+      "type": "text",
+      "id": "terms",
+      "label": "Delivery line",
+      "default": "2–7 business days in Saudi Arabia · Free over 200 SAR · 3-day returns"
+    }
+  ],
+  "presets": [{ "name": "Featured jersey" }]
+}
+{% endschema %}

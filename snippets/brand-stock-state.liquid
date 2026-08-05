@@ -1,0 +1,79 @@
+{% doc %}
+  Works out a product's stock state and renders its label.
+
+  Derived from inventory every time rather than stored on the product, so it
+  cannot drift. One threshold, set in theme settings, is used everywhere.
+
+  Variants that do not track inventory, or that are set to keep selling when out
+  of stock, count as plentiful — otherwise an untracked product would read as
+  sold out.
+
+  @param {object} product - The product to describe.
+  @param {string} [style] - 'pill' draws it as an outlined chip, otherwise plain text.
+  @param {string} [class] - Extra classes for the wrapper.
+
+  @example
+  {% render 'brand-stock-state', product: product, style: 'pill' %}
+{% enddoc %}
+
+{%- liquid
+  assign threshold = settings.low_stock_threshold | default: 6
+  assign counted = 0
+  assign untracked = false
+
+  for variant in product.variants
+    unless variant.available
+      continue
+    endunless
+
+    if variant.inventory_management == blank or variant.inventory_policy == 'continue'
+      assign untracked = true
+    else
+      assign counted = counted | plus: variant.inventory_quantity
+    endif
+  endfor
+
+  if product.available == false
+    assign state = 'sold-out'
+    assign label = settings.stock_label_sold_out | default: 'SOLD OUT'
+  elsif untracked == false and counted <= threshold
+    assign state = 'low'
+    assign label = settings.stock_label_low | default: 'LOW STOCK'
+  else
+    assign state = 'healthy'
+    assign label = settings.stock_label_healthy | default: 'SMALL RUN · RARE BY DESIGN'
+  endif
+-%}
+
+<span
+  class="brand-stock brand-stock--{{ state }}{% if style == 'pill' %} brand-stock--pill{% endif %} {{ class }}"
+  data-stock-state="{{ state }}"
+>
+  {{- label -}}
+</span>
+
+{% stylesheet %}
+  .brand-stock {
+    font: var(--brand-type-label);
+    font-size: 0.625rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.4);
+    white-space: nowrap;
+  }
+
+  .brand-stock--pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 12px;
+    border: 1px solid rgb(var(--brand-navy-rgb) / 0.16);
+    border-radius: var(--brand-radius-pill);
+    font-size: 0.65625rem;
+    letter-spacing: 0.13em;
+    color: rgb(var(--brand-navy-rgb) / 0.45);
+  }
+
+  .brand-stock--sold-out {
+    color: rgb(var(--brand-navy-rgb) / 0.55);
+  }
+{% endstylesheet %}

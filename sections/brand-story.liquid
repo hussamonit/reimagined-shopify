@@ -1,0 +1,158 @@
+{%- comment -%}
+  Anchor target for the STORY link in every nav. The homepage intro resets the
+  scroll position, so an incoming #story jump is re-run once it clears — see
+  brand-intro-loader.js.
+{%- endcomment -%}
+
+<section class="brand-story" id="story">
+  <div class="brand-story__inner">
+    <div data-reveal="0">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="brand-story__eyebrow">{{ section.settings.eyebrow }}</p>
+      {%- endif -%}
+      <h2 class="brand-story__heading">{{ section.settings.heading }}</h2>
+    </div>
+
+    <div class="brand-story__body" data-reveal="130">
+      {%- if section.settings.body_one != blank -%}
+        <p>{{ section.settings.body_one }}</p>
+      {%- endif -%}
+      {%- if section.settings.body_two != blank -%}
+        <p>{{ section.settings.body_two }}</p>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- if section.settings.image != blank -%}
+    <div class="brand-story__frame" data-reveal="0">
+      {{
+        section.settings.image
+        | image_url: width: 2400
+        | image_tag:
+          width: 1200,
+          widths: '600, 900, 1200, 1800, 2400',
+          sizes: '(min-width: 1180px) 1180px, 100vw',
+          loading: 'lazy',
+          alt: section.settings.image.alt
+          | default: ''
+      }}
+    </div>
+  {%- endif -%}
+</section>
+
+{% stylesheet %}
+  .brand-story {
+    background: var(--brand-navy);
+    color: var(--brand-white);
+    padding: clamp(4rem, 9vw, 8.25rem) var(--brand-gutter);
+  }
+
+  .brand-story__inner {
+    max-width: var(--brand-max-width);
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: clamp(2rem, 5vw, 4.5rem);
+    align-items: start;
+  }
+
+  .brand-story__eyebrow {
+    margin: 0 0 22px;
+    font: var(--brand-type-label);
+    font-size: 0.71875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--brand-on-navy-label);
+  }
+
+  .brand-story__heading {
+    margin: 0;
+    font: 800 clamp(2.375rem, 5.4vw, 4.5rem) / 0.96 var(--brand-font-display);
+    letter-spacing: -0.035em;
+    text-wrap: pretty;
+  }
+
+  .brand-story__body {
+    padding-top: 8px;
+  }
+
+  .brand-story__body p {
+    margin: 0 0 20px;
+    font: var(--brand-type-body-long);
+    line-height: 1.62;
+    color: var(--brand-on-navy-body);
+    text-wrap: pretty;
+  }
+
+  .brand-story__body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .brand-story__frame {
+    position: relative;
+    max-width: var(--brand-max-width);
+    margin: clamp(3rem, 6vw, 5.5rem) auto 0;
+    aspect-ratio: 21 / 9;
+    min-height: 220px;
+    background: var(--brand-navy-raised);
+    overflow: hidden;
+  }
+
+  .brand-story__frame img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 34%;
+    display: block;
+  }
+
+  /* 21:9 on a phone resolves to a strip a few centimetres tall, so the crop
+     opens up rather than the image shrinking away. */
+  @media screen and (max-width: 759px) {
+    .brand-story__frame {
+      aspect-ratio: 16 / 9;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Story",
+  "tag": "div",
+  "class": "brand-story-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "THE STORY"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Heritage, not merchandise."
+    },
+    {
+      "type": "textarea",
+      "id": "body_one",
+      "label": "First paragraph",
+      "default": "Every jersey starts with a country or a club — the colours it has always worn, the songs its people sing, the way a city empties out on a matchday. We read the heritage first: what the badge meant before it was a logo, and what the fans have made of it since."
+    },
+    {
+      "type": "textarea",
+      "id": "body_two",
+      "label": "Second paragraph",
+      "default": "Then we design something new from it. Not a reprint, not a replica — an original built out of the same material a supporter is made of: memory, belonging, and one moment nobody there will ever forget."
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    }
+  ],
+  "presets": [{ "name": "Story" }]
+}
+{% endschema %}

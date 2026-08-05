@@ -15,10 +15,12 @@ This theme is connected to Shopify through the GitHub integration. Files reach t
 - **`git pull` immediately after asking the owner to change anything in the Shopify editor.**
   Editor changes are committed back to the branch by Shopify, and working on a stale copy
   will conflict with them.
-- **Commit chunk by chunk, push once per part.** Commits are cheap and can be mid-progress.
-  Pushing is not: the branch history doubles as the store's version history, so a push should
-  mark a complete, verified part or page — never every commit. Verify on `shopify theme dev`,
-  then push.
+- **Never commit unverified work.** The owner checks each chunk on `shopify theme dev` first;
+  only commit once they have said it works. Leave finished work sitting in the working tree
+  and wait — do not commit "so it is saved".
+- **Commit chunk by chunk, push once per part.** Once a chunk is confirmed, commit it. Pushing
+  is separate and rarer: the branch history doubles as the store's version history, so a push
+  should mark a complete, verified part or page — never every commit.
 - Local preview (`shopify theme dev`) and the Shopify theme editor are **not** the same thing.
   The dev server shows the working tree live, unpushed changes included. The theme editor only
   ever shows what has been pushed. If they disagree, the difference is unpushed work.

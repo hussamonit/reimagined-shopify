@@ -1,0 +1,212 @@
+<section class="brand-craft" id="craft">
+  <div class="brand-craft__inner">
+    <div class="brand-craft__head" data-reveal="0">
+      <div>
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="brand-craft__eyebrow">{{ section.settings.eyebrow }}</p>
+        {%- endif -%}
+        <h2 class="brand-craft__heading">{{ section.settings.heading }}</h2>
+      </div>
+
+      {%- if section.settings.intro != blank -%}
+        <p class="brand-craft__intro">{{ section.settings.intro }}</p>
+      {%- endif -%}
+    </div>
+
+    <div class="brand-craft__body">
+      {%- if section.settings.image != blank -%}
+        <div class="brand-craft__frame" data-reveal="0">
+          {{
+            section.settings.image
+            | image_url: width: 1200
+            | image_tag:
+              width: 600,
+              widths: '300, 450, 600, 900, 1200',
+              sizes: '(min-width: 760px) 40vw, 100vw',
+              loading: 'lazy',
+              alt: section.settings.image.alt
+              | default: ''
+          }}
+        </div>
+      {%- endif -%}
+
+      <div class="brand-craft__cards">
+        {%- for block in section.blocks -%}
+          <div class="brand-craft__card" data-reveal="{{ forloop.index0 | times: 100 }}" {{ block.shopify_attributes }}>
+            {%- if block.settings.number != blank -%}
+              <p class="brand-craft__number">{{ block.settings.number }}</p>
+            {%- endif -%}
+            <h3 class="brand-craft__card-title">{{ block.settings.title }}</h3>
+            <p class="brand-craft__card-body">{{ block.settings.body }}</p>
+          </div>
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% stylesheet %}
+  .brand-craft {
+    background: var(--brand-bone);
+    padding: clamp(4rem, 8vw, 7.75rem) var(--brand-gutter);
+  }
+
+  .brand-craft__inner {
+    max-width: var(--brand-max-width);
+    margin-inline: auto;
+  }
+
+  .brand-craft__head {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: clamp(1.75rem, 4vw, 4rem);
+    align-items: end;
+    padding-bottom: clamp(2.75rem, 5vw, 4.5rem);
+  }
+
+  .brand-craft__eyebrow {
+    margin: 0 0 20px;
+    font: var(--brand-type-label);
+    font-size: 0.71875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.45);
+  }
+
+  .brand-craft__heading {
+    margin: 0;
+    font: 800 clamp(2.125rem, 4.6vw, 3.875rem) / 0.98 var(--brand-font-display);
+    letter-spacing: -0.032em;
+    text-wrap: pretty;
+  }
+
+  .brand-craft__intro {
+    margin: 0;
+    max-width: 420px;
+    font: var(--brand-type-body);
+    line-height: 1.62;
+    color: rgb(var(--brand-navy-rgb) / 0.62);
+    text-wrap: pretty;
+  }
+
+  .brand-craft__body {
+    display: flex;
+    gap: clamp(1.75rem, 4vw, 3.75rem);
+    flex-wrap: wrap;
+    align-items: flex-start;
+    border-top: 1px solid rgb(var(--brand-navy-rgb) / 0.16);
+    padding-top: clamp(2rem, 3.5vw, 3rem);
+  }
+
+  .brand-craft__frame {
+    position: relative;
+    flex: 1 1 280px;
+    max-width: 430px;
+    aspect-ratio: 3 / 4;
+    background: #eceae5;
+    overflow: hidden;
+  }
+
+  .brand-craft__frame img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+
+    /* The crest sits high in the frame; centring it crops the detail out. */
+    object-position: center 38%;
+    display: block;
+  }
+
+  .brand-craft__cards {
+    flex: 1.3 1 320px;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.625rem, 3vw, 2.5rem);
+  }
+
+  .brand-craft__number {
+    margin: 0 0 14px;
+    font: var(--brand-type-label);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.4);
+  }
+
+  .brand-craft__card-title {
+    margin: 0 0 10px;
+    font: var(--brand-type-card-title);
+    letter-spacing: var(--brand-tracking-card-title);
+  }
+
+  .brand-craft__card-body {
+    margin: 0;
+    font: var(--brand-type-body-sm);
+    font-size: 0.90625rem;
+    line-height: 1.62;
+    color: rgb(var(--brand-navy-rgb) / 0.6);
+    text-wrap: pretty;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Craft",
+  "tag": "div",
+  "class": "brand-craft-section",
+  "max_blocks": 4,
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "OUR CRAFT"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Kept deliberately small."
+    },
+    {
+      "type": "textarea",
+      "id": "intro",
+      "label": "Intro",
+      "default": "Each design is cut in a small run and left there. Rare on purpose, not by accident — the kind of shirt you rarely see coming back at you across a stadium."
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "card",
+      "name": "Numbered card",
+      "settings": [
+        {
+          "type": "text",
+          "id": "number",
+          "label": "Number",
+          "default": "01 — THE DESIGN"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Drawn from one match"
+        },
+        {
+          "type": "textarea",
+          "id": "body",
+          "label": "Body",
+          "default": "Every shirt begins with a single moment and is built outward from it — colours, crest, cut."
+        }
+      ]
+    }
+  ],
+  "presets": [{ "name": "Craft" }]
+}
+{% endschema %}

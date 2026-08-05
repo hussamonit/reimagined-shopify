@@ -54,7 +54,94 @@
         "body_two": "So every design gets judged by the people it is for, not by a brand team. If a supporter would not still be wearing it ten years after the match it is about, it does not get made.",
         "meta": "23°33′ S · 46°38′ W\nNO LICENCES · NO REPLICAS\nFIVE MOMENTS · LIMITED RUNS"
       }
+    },
+    "featured_jersey": {
+      "type": "brand-featured-jersey",
+      "settings": {
+        "label": "01 / 05 · THE FEATURE",
+        "size_label": "Size",
+        "select_label": "SELECT SIZE",
+        "add_label": "ADD TO CART",
+        "terms": "2–7 business days in Saudi Arabia · Free over 200 SAR · 3-day returns"
+      }
+    },
+    "jersey_grid": {
+      "type": "brand-jersey-grid",
+      "settings": {
+        "collection": "all",
+        "limit": 8,
+        "columns": "4",
+        "skip_featured": true,
+        "quick_add": true
+      }
+    },
+    "craft": {
+      "type": "brand-craft",
+      "blocks": {
+        "card_design": {
+          "type": "card",
+          "settings": {
+            "number": "01 — THE DESIGN",
+            "title": "Drawn from one match",
+            "body": "Every shirt begins with a single moment and is built outward from it — colours, crest, cut. The drawing starts on a blank page."
+          }
+        },
+        "card_cloth": {
+          "type": "card",
+          "settings": {
+            "number": "02 — THE CLOTH",
+            "title": "Ninety percent polyester",
+            "body": "The same family of cloth a match shirt is actually made from. Built to be worn and washed, not folded away in a drawer."
+          }
+        },
+        "card_detail": {
+          "type": "card",
+          "settings": {
+            "number": "03 — THE DETAIL",
+            "title": "A different hand each time",
+            "body": "Embroidery, silicone, detailed print, woven hems — the technique changes with the design rather than the design bending to one process."
+          }
+        }
+      },
+      "block_order": ["card_design", "card_cloth", "card_detail"],
+      "settings": {
+        "eyebrow": "OUR CRAFT",
+        "heading": "Kept deliberately small.",
+        "intro": "Each design is cut in a small run and left there. Rare on purpose, not by accident — the kind of shirt you rarely see coming back at you across a stadium."
+      }
+    },
+    "story": {
+      "type": "brand-story",
+      "settings": {
+        "eyebrow": "THE STORY",
+        "heading": "Heritage, not merchandise.",
+        "body_one": "Every jersey starts with a country or a club — the colours it has always worn, the songs its people sing, the way a city empties out on a matchday. We read the heritage first: what the badge meant before it was a logo, and what the fans have made of it since.",
+        "body_two": "Then we design something new from it. Not a reprint, not a replica — an original built out of the same material a supporter is made of: memory, belonging, and one moment nobody there will ever forget."
+      }
+    },
+    "newsletter": {
+      "type": "brand-newsletter",
+      "settings": {
+        "heading": "Stay in the loop",
+        "body": "First access to every drop, before it goes public.",
+        "placeholder": "Email address",
+        "button_label": "SUBSCRIBE",
+        "error_message": "Enter a valid email address.",
+        "success_label": "YOU'RE ON THE LIST",
+        "success_body": "We'll email you before the next run goes public.",
+        "fine_print": "By subscribing you agree to receive email from Reimagined and accept our Privacy Policy."
+      }
     }
   },
-  "order": ["intro_loader", "hero", "marquee", "origin"]
+  "order": [
+    "intro_loader",
+    "hero",
+    "marquee",
+    "origin",
+    "featured_jersey",
+    "jersey_grid",
+    "craft",
+    "story",
+    "newsletter"
+  ]
 }

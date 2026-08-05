@@ -1,0 +1,231 @@
+{%- comment -%}
+  Anchor target for the JOIN THE LIST button on the shop page.
+{%- endcomment -%}
+
+<section class="brand-newsletter" id="newsletter" data-reveal="0">
+  <div class="brand-newsletter__inner">
+    <h2 class="brand-newsletter__heading">{{ section.settings.heading }}</h2>
+
+    {%- if section.settings.body != blank -%}
+      <p class="brand-newsletter__body">{{ section.settings.body }}</p>
+    {%- endif -%}
+
+    {%- comment -%}
+      novalidate hands the checking to brand-newsletter.js, so the message
+      appears in the form rather than in a browser bubble.
+    {%- endcomment -%}
+    {%- form 'customer', novalidate: 'novalidate' -%}
+      <input type="hidden" name="contact[tags]" value="newsletter">
+
+      {%- if form.posted_successfully? -%}
+        <div class="brand-newsletter__done">
+          <p class="brand-newsletter__done-label">{{ section.settings.success_label }}</p>
+          <p class="brand-newsletter__done-body">{{ section.settings.success_body }}</p>
+        </div>
+      {%- else -%}
+        <brand-newsletter data-error-message="{{ section.settings.error_message | escape }}">
+          <div class="brand-newsletter__form">
+            <label class="visually-hidden" for="brand-newsletter-email">
+              {{- section.settings.placeholder -}}
+            </label>
+            <input
+              id="brand-newsletter-email"
+              ref="email"
+              type="email"
+              name="contact[email]"
+              autocomplete="email"
+              placeholder="{{ section.settings.placeholder | escape }}"
+            >
+            <button type="submit">{{ section.settings.button_label }}</button>
+          </div>
+
+          <p class="brand-newsletter__error" ref="error" role="alert" hidden></p>
+        </brand-newsletter>
+
+        {%- if form.errors -%}
+          <p class="brand-newsletter__error">{{ section.settings.error_message }}</p>
+        {%- endif -%}
+      {%- endif -%}
+    {%- endform -%}
+
+    {%- if section.settings.fine_print != blank -%}
+      <p class="brand-newsletter__fine">{{ section.settings.fine_print }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{% stylesheet %}
+  .brand-newsletter {
+    border-bottom: var(--brand-rule);
+    padding: var(--brand-section-padding) var(--brand-gutter);
+  }
+
+  .brand-newsletter__inner {
+    max-width: 640px;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .brand-newsletter__heading {
+    margin: 0 0 12px;
+    font: var(--brand-type-heading);
+    letter-spacing: var(--brand-tracking-heading);
+  }
+
+  .brand-newsletter__body {
+    margin: 0 0 28px;
+    font: var(--brand-type-body);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    color: rgb(var(--brand-navy-rgb) / 0.58);
+  }
+
+  .brand-newsletter__form {
+    display: flex;
+    gap: 8px;
+    max-width: 440px;
+    margin-inline: auto;
+  }
+
+  .brand-newsletter__form input {
+    flex: 1;
+    min-width: 0;
+    padding: 15px 18px;
+    border: 1px solid rgb(var(--brand-navy-rgb) / 0.24);
+    border-radius: var(--brand-radius);
+    background: var(--brand-white);
+    color: var(--brand-navy);
+    font: 400 0.875rem / 1 var(--brand-font-display);
+  }
+
+  .brand-newsletter__form input[aria-invalid='true'] {
+    border-color: var(--brand-error);
+  }
+
+  .brand-newsletter__form button {
+    padding: 15px 30px;
+    border: 0;
+    border-radius: var(--brand-radius);
+    background: var(--brand-navy);
+    color: var(--brand-white);
+    font: var(--brand-type-button);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color var(--brand-transition);
+  }
+
+  .brand-newsletter__form button:hover {
+    background: var(--brand-navy-hover);
+  }
+
+  .brand-newsletter__error {
+    margin: 12px 0 0;
+    font: var(--brand-type-label);
+    letter-spacing: 0.06em;
+    color: var(--brand-error);
+  }
+
+  .brand-newsletter__done {
+    max-width: 440px;
+    margin-inline: auto;
+    padding: 18px 20px;
+    border: 1px solid rgb(var(--brand-navy-rgb) / 0.16);
+    border-radius: var(--brand-radius);
+    background: var(--brand-bone);
+    text-align: left;
+  }
+
+  .brand-newsletter__done-label {
+    margin: 0 0 9px;
+    font: var(--brand-type-label);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-navy-rgb) / 0.45);
+  }
+
+  .brand-newsletter__done-body {
+    margin: 0;
+    font: var(--brand-type-body-sm);
+    font-size: 0.90625rem;
+    color: rgb(var(--brand-navy-rgb) / 0.68);
+    text-wrap: pretty;
+  }
+
+  .brand-newsletter__fine {
+    max-width: 400px;
+    margin: 22px auto 0;
+    font: 400 0.6875rem / 1.6 var(--brand-font-mono);
+    color: rgb(var(--brand-navy-rgb) / 0.38);
+  }
+
+  @media screen and (max-width: 759px) {
+    .brand-newsletter__form {
+      flex-direction: column;
+    }
+
+    .brand-newsletter__form input,
+    .brand-newsletter__form button {
+      min-height: var(--brand-tap-target);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Newsletter",
+  "tag": "div",
+  "class": "brand-newsletter-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Stay in the loop"
+    },
+    {
+      "type": "text",
+      "id": "body",
+      "label": "Body",
+      "default": "First access to every drop, before it goes public."
+    },
+    {
+      "type": "text",
+      "id": "placeholder",
+      "label": "Field placeholder",
+      "default": "Email address"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button",
+      "default": "SUBSCRIBE"
+    },
+    {
+      "type": "text",
+      "id": "error_message",
+      "label": "Error message",
+      "default": "Enter a valid email address."
+    },
+    {
+      "type": "text",
+      "id": "success_label",
+      "label": "Confirmation label",
+      "default": "YOU'RE ON THE LIST"
+    },
+    {
+      "type": "text",
+      "id": "success_body",
+      "label": "Confirmation body",
+      "default": "We'll email you before the next run goes public."
+    },
+    {
+      "type": "textarea",
+      "id": "fine_print",
+      "label": "Fine print",
+      "default": "By subscribing you agree to receive email from Reimagined and accept our Privacy Policy."
+    }
+  ],
+  "presets": [{ "name": "Newsletter" }]
+}
+{% endschema %}

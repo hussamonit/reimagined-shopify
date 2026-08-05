@@ -1,0 +1,249 @@
+{% doc %}
+  One jersey tile. Shared by the homepage grid and the shop page, which use the
+  same tile by design.
+
+  The year sits behind the text on the tile's bottom border, drawn in the
+  product's own accent colour. Both come from metafields, so a sixth jersey
+  needs no template work.
+
+  @param {object} product - The product to render.
+  @param {number} [index] - Position in the grid, shown as the small number.
+  @param {boolean} [quick_add] - Whether hovering reveals the size row.
+  @param {string} [loading] - Image loading hint.
+
+  @example
+  {% render 'brand-product-tile', product: product, index: forloop.index, quick_add: true %}
+{% enddoc %}
+
+{%- liquid
+  assign year = product.metafields.jersey.year.value
+  assign accent = product.metafields.jersey.accent.value
+  assign blurb = product.description | strip_html | strip | truncate: 96
+
+  comment
+    `render` does not inherit the caller's scope, so forloop is out of reach —
+    the position has to be handed in.
+  endcomment
+  assign position = index | default: 1
+  assign stagger = position | minus: 1 | times: 90
+-%}
+
+<article class="brand-tile" data-reveal="{{ stagger }}">
+  {%- if year != blank -%}
+    <span class="brand-tile__year" {% if accent %}style="color: {{ accent }}"{% endif %} aria-hidden="true">
+      {{- year -}}
+    </span>
+  {%- endif -%}
+
+  <div class="brand-tile__frame">
+    {%- if product.featured_media -%}
+      {{
+        product.featured_media
+        | image_url: width: 1200
+        | image_tag:
+          width: 600,
+          widths: '300, 450, 600, 900, 1200',
+          sizes: '(min-width: 760px) 33vw, 50vw',
+          loading: loading,
+          alt: product.featured_media.alt
+          | default: product.title
+      }}
+    {%- else -%}
+      {{ 'product-apparel-1' | placeholder_svg_tag: 'brand-tile__placeholder' }}
+    {%- endif -%}
+
+    {%- if quick_add and product.available -%}
+      {%- comment -%}
+        Each chip is a one-click add for that size. Hidden until hover, and
+        never shown on touch, where there is no hover to reveal it.
+      {%- endcomment -%}
+      <brand-quick-add class="brand-tile__sizes" data-product-title="{{ product.title | escape }}">
+        {%- for variant in product.variants -%}
+          <button
+            type="button"
+            class="brand-tile__size"
+            data-variant-id="{{ variant.id }}"
+            {% unless variant.available %}
+              disabled
+            {% endunless %}
+          >
+            {{- variant.title -}}
+          </button>
+        {%- endfor -%}
+      </brand-quick-add>
+    {%- endif -%}
+  </div>
+
+  <p class="brand-tile__meta">
+    {%- if accent -%}
+      <span class="brand-tile__dot" style="background: {{ accent }}"></span>
+    {%- endif -%}
+    {{ position | prepend: '0' | slice: -2, 2 }}
+  </p>
+
+  <h3 class="brand-tile__title">
+    <a href="{{ product.url }}">{{ product.title }}</a>
+  </h3>
+
+  {%- if blurb != blank -%}
+    <p class="brand-tile__blurb">{{ blurb }}</p>
+  {%- endif -%}
+
+  <p class="brand-tile__price">
+    <span>{{ product.price | money }}</span>
+    {% render 'brand-stock-state', product: product %}
+  </p>
+</article>
+
+{% stylesheet %}
+  .brand-tile {
+    position: relative;
+
+    /* Keeps the year's negative z-index inside the tile rather than punching
+       through to the page background. */
+    isolation: isolate;
+    overflow: hidden;
+    padding-bottom: 22px;
+    border-right: var(--brand-rule);
+    border-bottom: var(--brand-rule);
+  }
+
+  .brand-tile__year {
+    position: absolute;
+    right: -6px;
+    bottom: 0;
+    z-index: -1;
+    font: var(--brand-type-year);
+    letter-spacing: var(--brand-tracking-year);
+    opacity: 0.18;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .brand-tile__frame {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    background: var(--brand-bone);
+    overflow: hidden;
+  }
+
+  .brand-tile__frame img,
+  .brand-tile__placeholder {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .brand-tile__sizes {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    display: flex;
+    gap: 5px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity var(--brand-transition),
+      transform var(--brand-transition);
+    pointer-events: none;
+  }
+
+  .brand-tile:hover .brand-tile__sizes,
+  .brand-tile:focus-within .brand-tile__sizes {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+
+  .brand-tile__size {
+    flex: 1;
+    padding-block: 10px;
+    border: 0;
+    border-radius: var(--brand-radius);
+    background: rgb(255 255 255 / 0.95);
+    color: var(--brand-navy);
+    font: var(--brand-type-label);
+    line-height: 1;
+    letter-spacing: 0;
+    cursor: pointer;
+    transition: background-color var(--brand-transition);
+  }
+
+  .brand-tile__size:hover {
+    background: var(--brand-white);
+  }
+
+  .brand-tile__size[disabled] {
+    opacity: 0.4;
+    cursor: default;
+    text-decoration: line-through;
+  }
+
+  .brand-tile__meta {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0;
+    padding: 16px 18px 0;
+    font: var(--brand-type-label);
+    letter-spacing: 0.12em;
+    color: rgb(var(--brand-navy-rgb) / 0.5);
+  }
+
+  .brand-tile__dot {
+    flex: none;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgb(var(--brand-navy-rgb) / 0.25);
+  }
+
+  .brand-tile__title {
+    margin: 0;
+    padding: 9px 18px 0;
+    font: var(--brand-type-card-title);
+    font-size: 1.1875rem;
+    letter-spacing: -0.02em;
+  }
+
+  .brand-tile__title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .brand-tile__title a:hover {
+    color: var(--brand-body-muted);
+  }
+
+  .brand-tile__blurb {
+    margin: 0;
+    padding: 5px 18px 0;
+    font: var(--brand-type-body-sm);
+    font-size: 0.84375rem;
+    color: rgb(var(--brand-navy-rgb) / 0.55);
+    text-wrap: pretty;
+  }
+
+  .brand-tile__price {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 0;
+    padding: 11px 18px 0;
+  }
+
+  .brand-tile__price > span:first-child {
+    font: 600 0.875rem / 1 var(--brand-font-display);
+  }
+
+  /* No hover to reveal on, so the size row would be unreachable. */
+  @media (hover: none) {
+    .brand-tile__sizes {
+      display: none;
+    }
+  }
+{% endstylesheet %}

@@ -1,0 +1,145 @@
+{%- liquid
+  assign collection = section.settings.collection
+
+  comment
+    The featured jersey sits directly above this grid, so listing it again
+    would show the same shirt twice. Falling back to the first product matches
+    what the featured section falls back to, so the two agree out of the box.
+  endcomment
+  assign skipped = section.settings.exclude
+  if skipped == blank and section.settings.skip_featured
+    assign skipped = collections.all.products.first
+  endif
+
+  assign limit = section.settings.limit
+  assign shown = 0
+-%}
+
+<section class="brand-grid brand-grid--{{ section.settings.columns }}">
+  {%- for product in collection.products -%}
+    {%- if skipped != blank and product.id == skipped.id -%}
+      {%- continue -%}
+    {%- endif -%}
+
+    {%- if shown >= limit -%}
+      {%- break -%}
+    {%- endif -%}
+
+    {%- comment -%}
+      Numbered by position in the whole collection, not in this grid, so the
+      featured jersey keeps 01 and the tiles carry on from 02.
+    {%- endcomment -%}
+    {% render 'brand-product-tile',
+      product: product,
+      index: forloop.index,
+      quick_add: section.settings.quick_add,
+      loading: 'lazy'
+    %}
+
+    {%- assign shown = shown | plus: 1 -%}
+  {%- else -%}
+    {%- if request.design_mode -%}
+      <p class="brand-grid__empty">Pick a collection for this section.</p>
+    {%- endif -%}
+  {%- endfor -%}
+</section>
+
+{% stylesheet %}
+  .brand-grid {
+    display: grid;
+
+    /* Two up until there is room for the full row — the same step the
+       prototype makes. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-bottom: var(--brand-rule);
+  }
+
+  .brand-grid__empty {
+    padding: var(--brand-section-padding) var(--brand-gutter);
+    font: var(--brand-type-label);
+    letter-spacing: var(--brand-tracking-label);
+    text-transform: uppercase;
+    color: var(--brand-label-muted);
+  }
+
+  .brand-grid .brand-tile:nth-child(2n) {
+    border-right: 0;
+  }
+
+  @media screen and (min-width: 1040px) {
+    .brand-grid--3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .brand-grid--4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    /* The two-up rule has to be undone first, or every second tile keeps
+       losing its divider. */
+    .brand-grid .brand-tile:nth-child(2n) {
+      border-right: var(--brand-rule);
+    }
+
+    .brand-grid--3 .brand-tile:nth-child(3n),
+    .brand-grid--4 .brand-tile:nth-child(4n) {
+      border-right: 0;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Jersey grid",
+  "tag": "div",
+  "class": "brand-grid-section",
+  "settings": [
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "limit",
+      "label": "Jerseys shown",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "select",
+      "id": "columns",
+      "label": "Columns",
+      "info": "Always two across below 1040px.",
+      "options": [
+        { "value": "3", "label": "Three" },
+        { "value": "4", "label": "Four" }
+      ],
+      "default": "4"
+    },
+    {
+      "type": "checkbox",
+      "id": "skip_featured",
+      "label": "Leave out the featured jersey",
+      "default": true,
+      "info": "Stops the jersey shown in the panel above appearing again here."
+    },
+    {
+      "type": "product",
+      "id": "exclude",
+      "label": "Jersey to leave out",
+      "info": "Only needed if the Featured jersey section has a specific jersey picked. Left empty, both sections assume the first one in the collection."
+    },
+    {
+      "type": "checkbox",
+      "id": "quick_add",
+      "label": "Reveal size chips on hover",
+      "default": true,
+      "info": "Each chip adds that size straight to the bag. Hidden on touch screens."
+    }
+  ],
+  "presets": [{ "name": "Jersey grid" }]
+}
+{% endschema %}
