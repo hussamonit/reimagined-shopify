@@ -1,5 +1,4 @@
 import { Component } from '@theme/component';
-import { StandardEvents, CartLinesUpdateEvent } from '@shopify/events';
 
 /**
  * The scroll-linked masthead used on top of the homepage hero.
@@ -26,19 +25,21 @@ const smoothstep = (value) => value * value * (3 - 2 * value);
 
 /**
  * @typedef {object} Refs
- * @property {HTMLElement} mark - Wraps both wordmarks; this is what scales.
- * @property {HTMLElement} markLight - White wordmark, shown over the hero.
- * @property {HTMLElement} markDark - Navy wordmark, shown once past it.
- * @property {HTMLElement} logo - Wraps the compact mark, centred in the bar.
- * @property {HTMLElement} logoInner - Scales as the compact mark fades in.
- * @property {HTMLElement} logoLight - White logo mark.
- * @property {HTMLElement} logoDark - Navy logo mark.
- * @property {HTMLElement[]} links - Both nav link groups.
+ * @property {HTMLElement} [mark] - Wraps both wordmarks; this is what scales.
+ * @property {HTMLElement} [markLight] - White wordmark, shown over the hero.
+ * @property {HTMLElement} [markDark] - Navy wordmark, shown once past it.
+ * @property {HTMLElement} [logo] - Wraps the compact mark, centred in the bar.
+ * @property {HTMLElement} [logoInner] - Scales as the compact mark fades in.
+ * @property {HTMLElement} [logoLight] - White logo mark.
+ * @property {HTMLElement} [logoDark] - Navy logo mark.
+ * @property {HTMLElement[]} [links] - Both nav link groups.
  *
  * @extends {Component<Refs>}
  */
 class BrandHeaderOverlay extends Component {
-  requiredRefs = ['mark', 'markLight', 'markDark', 'logo', 'logoInner', 'logoLight', 'logoDark'];
+  // Deliberately no requiredRefs: a missing ref here should degrade to the
+  // plain bar, not throw out of connectedCallback and leave the wordmark
+  // frozen at full size with no way to recover.
 
   /** @type {number} */
   #frame = 0;
@@ -131,18 +132,20 @@ class BrandHeaderOverlay extends Component {
     const scrolled = window.scrollY;
     const progress = smoothstep(clamp01(scrolled / distance));
 
-    mark.style.transform = `translateY(${start + (end - start) * progress}px) scale(${
-      1 + (scale - 1) * progress
-    })`;
+    if (mark) {
+      mark.style.transform = `translateY(${start + (end - start) * progress}px) scale(${
+        1 + (scale - 1) * progress
+      })`;
 
-    // The wordmark clears out before the compact mark arrives, so the two never
-    // read as one shape mid-transition.
-    const wordmarkOut = clamp01((progress - 0.56) / 0.34);
+      // The wordmark clears out before the compact mark arrives, so the two
+      // never read as one shape mid-transition.
+      mark.style.opacity = `${1 - clamp01((progress - 0.56) / 0.34)}`;
+    }
+
     const logoIn = clamp01((progress - 0.64) / 0.36);
 
-    mark.style.opacity = `${1 - wordmarkOut}`;
-    logo.style.opacity = `${logoIn}`;
-    logoInner.style.transform = `scale(${0.78 + 0.22 * logoIn})`;
+    if (logo) logo.style.opacity = `${logoIn}`;
+    if (logoInner) logoInner.style.transform = `scale(${0.78 + 0.22 * logoIn})`;
 
     // Hovering the bar brings the dark treatment in early, so the links are
     // legible the moment someone reaches for them.
@@ -150,10 +153,10 @@ class BrandHeaderOverlay extends Component {
       ? Math.max(clamp01((scrolled - darkStart) / CONTRAST_FADE), this.#hovering ? 1 : 0)
       : 1;
 
-    markLight.style.opacity = `${1 - contrast}`;
-    markDark.style.opacity = `${contrast}`;
-    logoLight.style.opacity = `${1 - contrast}`;
-    logoDark.style.opacity = `${contrast}`;
+    if (markLight) markLight.style.opacity = `${1 - contrast}`;
+    if (markDark) markDark.style.opacity = `${contrast}`;
+    if (logoLight) logoLight.style.opacity = `${1 - contrast}`;
+    if (logoDark) logoDark.style.opacity = `${contrast}`;
 
     for (const group of links ?? []) group.style.setProperty('--brand-nav-contrast', `${contrast}`);
 
@@ -166,45 +169,4 @@ class BrandHeaderOverlay extends Component {
 
 if (!customElements.get('brand-header-overlay')) {
   customElements.define('brand-header-overlay', BrandHeaderOverlay);
-}
-
-/**
- * Keeps the number in "CART (n)" current after an AJAX add.
- *
- * Horizon's own <cart-icon> hides itself at zero, which is right for a bubble
- * and wrong for a number inside brackets — so this listens to the same event
- * and only ever rewrites the text.
- *
- * @typedef {object} CountRefs
- * @property {HTMLElement} count - The element holding the number.
- *
- * @extends {Component<CountRefs>}
- */
-class BrandCartCount extends Component {
-  requiredRefs = ['count'];
-
-  connectedCallback() {
-    super.connectedCallback();
-    document.addEventListener(StandardEvents.cartLinesUpdate, this.#onCartUpdate);
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    document.removeEventListener(StandardEvents.cartLinesUpdate, this.#onCartUpdate);
-  }
-
-  /** @param {CartLinesUpdateEvent} event */
-  #onCartUpdate = (event) => {
-    event.promise
-      ?.then(({ cart, detail }) => {
-        this.refs.count.textContent = String(cart?.totalQuantity ?? detail?.itemCount ?? 0);
-      })
-      .catch((error) => {
-        if (error?.name !== 'AbortError') console.warn('[brand-cart-count] Event promise rejected:', error);
-      });
-  };
-}
-
-if (!customElements.get('brand-cart-count')) {
-  customElements.define('brand-cart-count', BrandCartCount);
 }

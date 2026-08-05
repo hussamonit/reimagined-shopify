@@ -1,0 +1,311 @@
+{%- comment -%}
+  The full-bleed opening. Marked with data-brand-hero: the header watches for it
+  to decide whether to run its overlay treatment, and measures its height to
+  know when to turn its links navy.
+{%- endcomment -%}
+
+<section class="brand-hero" data-brand-hero>
+  <div class="brand-hero__media">
+    {%- if section.settings.video != blank -%}
+      {%- comment -%}
+        Horizon's component assigns the source on connect, which keeps the video
+        out of the critical path while the poster carries the first paint.
+      {%- endcomment -%}
+      <video-background-component class="brand-hero__video">
+        {{
+          section.settings.video.preview_image
+          | image_url: width: 3840
+          | image_tag:
+            width: 1920,
+            widths: '832, 1200, 1600, 1920, 2560, 3840',
+            sizes: '100vw',
+            loading: 'eager',
+            fetchpriority: 'high',
+            class: 'brand-hero__poster',
+            alt: ''
+        }}
+        <video
+          playsinline
+          muted
+          autoplay
+          loop
+          ref="videoElement"
+        >
+          {%- for source in section.settings.video.sources -%}
+            <source
+              data-video-source="{{ source.url }}"
+              type="{{ source.mime_type }}"
+              ref="videoSources[]"
+            >
+          {%- endfor -%}
+        </video>
+      </video-background-component>
+    {%- elsif section.settings.video_src != blank -%}
+      {%- comment -%}
+        Straight link to a file in Content → Files. The picker above is better —
+        it carries a poster frame and multiple encodings — but this works
+        without the theme having to be live on the store first.
+      {%- endcomment -%}
+      <video
+        playsinline
+        muted
+        autoplay
+        loop
+        preload="auto"
+        {% if section.settings.image != blank %}
+          poster="{{ section.settings.image | image_url: width: 1920 }}"
+        {% endif %}
+        src="{{ section.settings.video_src }}"
+      ></video>
+    {%- elsif section.settings.image != blank -%}
+      {{
+        section.settings.image
+        | image_url: width: 3840
+        | image_tag:
+          width: 1920,
+          widths: '832, 1200, 1600, 1920, 2560, 3840',
+          sizes: '100vw',
+          loading: 'eager',
+          fetchpriority: 'high',
+          alt: ''
+      }}
+    {%- endif -%}
+  </div>
+
+  <div class="brand-hero__wash"></div>
+
+  <div class="brand-hero__foot">
+    <div class="brand-hero__lockup">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="brand-hero__eyebrow">{{ section.settings.eyebrow }}</p>
+      {%- endif -%}
+
+      <h1 class="brand-hero__tagline">
+        <img
+          src="{{ 'brand-tagline-white.svg' | asset_url }}"
+          alt="{{ section.settings.tagline_alt }}"
+          width="330"
+          height="20"
+        >
+      </h1>
+
+      {%- if section.settings.cta_label != blank -%}
+        <a href="{{ section.settings.cta_link }}" class="brand-hero__cta">
+          {{- section.settings.cta_label -}}
+        </a>
+      {%- endif -%}
+    </div>
+
+    {%- if section.settings.show_cue -%}
+      <p class="brand-hero__cue">
+        <span>{{ section.settings.cue_label }}</span>
+      </p>
+    {%- endif -%}
+  </div>
+</section>
+
+{% stylesheet %}
+  .brand-hero {
+    position: relative;
+    height: 100vh;
+    min-height: 620px;
+    overflow: hidden;
+    background: var(--brand-navy);
+    color: var(--brand-white);
+  }
+
+  .brand-hero__media,
+  .brand-hero__media img,
+  .brand-hero__media video,
+  .brand-hero__video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .brand-hero__media img,
+  .brand-hero__media video {
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Dark at the top so the nav reads, dark again at the bottom for the lockup,
+     clear through the middle where the shirt is. */
+  .brand-hero__wash {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      rgb(var(--brand-navy-rgb) / 0.55) 0%,
+      rgb(var(--brand-navy-rgb) / 0.12) 24%,
+      rgb(var(--brand-navy-rgb) / 0) 46%,
+      rgb(var(--brand-navy-rgb) / 0.7) 100%
+    );
+  }
+
+  .brand-hero__foot {
+    position: absolute;
+    left: var(--brand-gutter);
+    right: var(--brand-gutter);
+    bottom: 44px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 28px;
+    flex-wrap: wrap;
+
+    /* Only the CTA and cue take clicks; the rest must not sit over the video. */
+    pointer-events: none;
+  }
+
+  .brand-hero__eyebrow {
+    margin: 0 0 13px;
+    font: var(--brand-type-label);
+    font-size: 0.65625rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.7);
+  }
+
+  .brand-hero__tagline {
+    margin: 0 0 20px;
+  }
+
+  .brand-hero__tagline img {
+    display: block;
+    width: clamp(190px, 25vw, 330px);
+    height: auto;
+  }
+
+  .brand-hero__cta {
+    pointer-events: auto;
+    display: inline-block;
+    padding: 11px 26px;
+    border-radius: var(--brand-radius-pill);
+    background: var(--brand-white);
+    color: var(--brand-navy);
+    font: var(--brand-type-button);
+    font-size: 0.6875rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background-color var(--brand-transition);
+  }
+
+  .brand-hero__cta:hover {
+    background: rgb(255 255 255 / 0.82);
+    color: var(--brand-navy);
+  }
+
+  /* Fades out against the header's collapse, which publishes its progress on
+     the root element. */
+  .brand-hero__cue {
+    margin: 0 0 5px;
+    font: var(--brand-type-label);
+    font-size: 0.625rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.72);
+    opacity: calc(1 - var(--brand-nav-progress, 0) * 2);
+  }
+
+  /* Split from the fade so the two opacities multiply instead of fighting. */
+  .brand-hero__cue span {
+    display: inline-block;
+    animation: brand-hero-cue 2.2s ease-in-out infinite;
+  }
+
+  @keyframes brand-hero-cue {
+    0%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.7;
+    }
+
+    50% {
+      transform: translateY(5px);
+      opacity: 1;
+    }
+  }
+
+  @media screen and (max-width: 759px) {
+    .brand-hero__cue {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .brand-hero__cue span {
+      animation: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Hero",
+  "tag": "section",
+  "class": "brand-hero-section",
+  "enabled_on": { "templates": ["index"] },
+  "settings": [
+    {
+      "type": "video",
+      "id": "video",
+      "label": "Background video",
+      "info": "Upload under Content → Files first. Falls back to the image below."
+    },
+    {
+      "type": "text",
+      "id": "video_src",
+      "label": "Or paste a video link",
+      "info": "Copy the link to the file from Content → Files. Only used when nothing is picked above."
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Background image",
+      "info": "Shown if there is no video, and used as the still frame while one loads."
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "SS26 · FIVE MOMENTS"
+    },
+    {
+      "type": "text",
+      "id": "tagline_alt",
+      "label": "Tagline alt text",
+      "default": "Wear The Moment",
+      "info": "Describes the tagline artwork for screen readers."
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Button",
+      "default": "SHOP NOW"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "Button link"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cue",
+      "label": "Show scroll cue",
+      "default": true,
+      "info": "Always hidden below 760px."
+    },
+    {
+      "type": "text",
+      "id": "cue_label",
+      "label": "Scroll cue",
+      "default": "SCROLL ↓"
+    }
+  ],
+  "presets": [{ "name": "Hero" }]
+}
+{% endschema %}

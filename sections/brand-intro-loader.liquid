@@ -1,0 +1,98 @@
+{%- comment -%}
+  Covers the homepage on arrival for two seconds. See brand-intro-loader.js for
+  why the scroll position needs putting back afterwards.
+{%- endcomment -%}
+
+<brand-intro-loader
+  class="brand-loader"
+  data-once-per-visit="{{ section.settings.once_per_visit }}"
+>
+  <img
+    class="brand-loader__mark"
+    src="{{ 'brand-logo-white.svg' | asset_url }}"
+    alt="{{ shop.name }}"
+    width="72"
+    height="60"
+  >
+</brand-intro-loader>
+
+{% stylesheet %}
+  .brand-loader {
+    position: fixed;
+    inset: 0;
+    z-index: var(--layer-temporary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--brand-navy);
+    animation: brand-loader-out 2s var(--brand-ease-reveal) forwards;
+  }
+
+  .brand-loader[hidden] {
+    display: none;
+  }
+
+  .brand-loader__mark {
+    width: 72px;
+    height: auto;
+    animation: brand-loader-in 2s var(--brand-ease-reveal) forwards;
+  }
+
+  @keyframes brand-loader-in {
+    0% {
+      opacity: 0;
+      transform: translateY(9px) scale(0.94);
+    }
+
+    30%,
+    100% {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes brand-loader-out {
+    0%,
+    64% {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    100% {
+      opacity: 0;
+      visibility: hidden;
+    }
+  }
+
+  /* The script hides it outright in this case; killing the animation stops it
+     flashing navy first. */
+  @media (prefers-reduced-motion: reduce) {
+    .brand-loader,
+    .brand-loader__mark {
+      animation: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Intro loader",
+  "tag": "div",
+  "class": "brand-loader-section",
+  "enabled_on": { "templates": ["index"] },
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Covers the page for two seconds on arrival. Never shown in the theme editor, or to visitors who have asked for reduced motion."
+    },
+    {
+      "type": "checkbox",
+      "id": "once_per_visit",
+      "label": "Only on the first homepage view",
+      "default": true,
+      "info": "Off means it plays every time someone returns to the homepage."
+    }
+  ],
+  "presets": [{ "name": "Intro loader" }]
+}
+{% endschema %}

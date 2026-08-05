@@ -1,0 +1,130 @@
+{%- if section.settings.enabled and section.blocks.size > 0 -%}
+  <div class="brand-marquee">
+    {%- comment -%}
+      The track holds two identical halves and slides by exactly half its width,
+      so the moment it resets is the moment the second half is where the first
+      one started — no visible seam. Each half repeats the phrases twice so the
+      track stays wider than the screen on large displays.
+    {%- endcomment -%}
+    {%- comment -%}
+      The whole track is repetition, so it is hidden from screen readers and the
+      phrases are announced once below instead.
+    {%- endcomment -%}
+    <div
+      class="brand-marquee__track"
+      style="--brand-marquee-speed: {{ section.settings.speed }}s"
+      aria-hidden="true"
+    >
+      {%- for half in (1..2) -%}
+        <div class="brand-marquee__half">
+          {%- for pass in (1..2) -%}
+            {%- for block in section.blocks -%}
+              <span {{ block.shopify_attributes }}>{{ block.settings.phrase }}</span>
+              <span>·</span>
+            {%- endfor -%}
+          {%- endfor -%}
+        </div>
+      {%- endfor -%}
+    </div>
+
+    <p class="visually-hidden">
+      {%- for block in section.blocks -%}
+        {{ block.settings.phrase }}{% unless forloop.last %}.{% endunless %}
+      {%- endfor -%}
+    </p>
+  </div>
+{%- endif -%}
+
+{% stylesheet %}
+  .brand-marquee {
+    background: var(--brand-navy);
+    overflow: hidden;
+    padding-block: 13px;
+  }
+
+  .brand-marquee__track {
+    display: flex;
+    width: max-content;
+    animation: brand-marquee var(--brand-marquee-speed, 30s) linear infinite;
+  }
+
+  .brand-marquee__half {
+    display: flex;
+    gap: 34px;
+    padding-right: 34px;
+    white-space: nowrap;
+    font: var(--brand-type-label);
+    font-size: 0.71875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.82);
+  }
+
+  @keyframes brand-marquee {
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .brand-marquee__track {
+      animation: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Marquee",
+  "tag": "div",
+  "class": "brand-marquee-section",
+  "enabled_on": { "templates": ["index"] },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enabled",
+      "label": "Show marquee",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "speed",
+      "label": "Time for one loop",
+      "min": 10,
+      "max": 90,
+      "step": 5,
+      "unit": "s",
+      "default": 30
+    }
+  ],
+  "blocks": [
+    {
+      "type": "phrase",
+      "name": "Phrase",
+      "settings": [
+        {
+          "type": "text",
+          "id": "phrase",
+          "label": "Phrase",
+          "default": "ORIGINAL DESIGNS"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Marquee",
+      "blocks": [
+        { "type": "phrase", "settings": { "phrase": "ORIGINAL DESIGNS" } },
+        { "type": "phrase", "settings": { "phrase": "LIMITED RUNS" } },
+        { "type": "phrase", "settings": { "phrase": "RARE BY DESIGN" } },
+        { "type": "phrase", "settings": { "phrase": "2–7 BUSINESS DAYS IN SAUDI ARABIA" } }
+      ]
+    }
+  ]
+}
+{% endschema %}
