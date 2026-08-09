@@ -120,11 +120,26 @@
           <aside class="brand-bag__summary">
             <p class="brand-bag__summary-label">{{ section.settings.summary_label }}</p>
 
+            {%- comment -%}
+              Subtotal is what the items come to before anything is taken off,
+              so a discount has a figure to be subtracted from rather than
+              appearing to come out of nowhere.
+            {%- endcomment -%}
+            {%- assign savings = cart.original_total_price | minus: cart.total_price -%}
+
             <div class="brand-bag__rows">
               <div class="brand-bag__row">
                 <span>{{ section.settings.subtotal_label }}</span>
-                <span>{{ cart.total_price | money }}</span>
+                <span>{{ cart.original_total_price | money }}</span>
               </div>
+
+              {%- if savings > 0 -%}
+                <div class="brand-bag__row brand-bag__row--saving">
+                  <span>{{ section.settings.discount_label }}</span>
+                  <span>&minus;{{ savings | money }}</span>
+                </div>
+              {%- endif -%}
+
               <div class="brand-bag__row">
                 <span>{{ section.settings.shipping_label }}</span>
                 <span>
@@ -142,13 +157,95 @@
               <span>{{ cart.total_price | money }}</span>
             </div>
 
+            {%- if settings.show_add_discount_code -%}
+              {%- comment -%}
+                Horizon's own discount component, kept rather than rewritten: it
+                already handles the cart API, an unusable code, the special case
+                of a shipping discount that only resolves at checkout, and
+                re-rendering this section afterwards. The markup contract it
+                needs is the three error refs, the pill class and the section id;
+                the styling here is ours.
+              {%- endcomment -%}
+              {%- liquid
+                assign discount_codes = cart.cart_level_discount_applications | where: 'type', 'discount_code' | map: 'title'
+                for item in cart.items
+                  for allocation in item.line_level_discount_allocations
+                    if allocation.discount_application.type == 'discount_code'
+                      assign discount_codes = item.line_level_discount_allocations | slice: forloop.index0 | map: 'discount_application' | map: 'title' | concat: discount_codes
+                    endif
+                  endfor
+                endfor
+                assign discount_codes = discount_codes | uniq
+              -%}
+
+              <cart-discount-component class="brand-bag__discount" data-section-id="{{ section.id }}">
+                <form class="brand-bag__discount-form" on:submit="/applyDiscount" onsubmit="return false;">
+                  <label class="visually-hidden" for="brand-discount-code">
+                    {{- 'accessibility.discount' | t -}}
+                  </label>
+                  <input
+                    id="brand-discount-code"
+                    type="text"
+                    name="discount"
+                    placeholder="{{ section.settings.discount_placeholder | escape }}"
+                    required
+                    data-skip-node-update
+                  >
+                  <button type="submit">{{ section.settings.discount_apply }}</button>
+                </form>
+
+                <div class="brand-bag__discount-error hidden" role="alert" ref="cartDiscountError">
+                  <small class="hidden" ref="cartDiscountErrorDiscountCode">
+                    {{- 'content.discount_code_error' | t -}}
+                  </small>
+                  <small class="hidden" ref="cartDiscountErrorShipping">
+                    {{- 'content.shipping_discount_error' | t -}}
+                  </small>
+                </div>
+
+                {%- if discount_codes.size > 0 -%}
+                  <ul class="brand-bag__pills">
+                    {%- for code in discount_codes -%}
+                      {%- comment -%}
+                        The class and the li are what the component looks for.
+                      {%- endcomment -%}
+                      <li
+                        class="cart-discount__pill brand-bag__pill"
+                        data-discount-code="{{ code }}"
+                        aria-label="{{ 'accessibility.discount_applied' | t: code: code }}"
+                      >
+                        <span>{{ code }}</span>
+                        <button
+                          type="button"
+                          on:click="/removeDiscount"
+                          aria-label="{{ 'actions.remove_discount' | t: code: code }}"
+                        >
+                          &times;
+                        </button>
+                      </li>
+                    {%- endfor -%}
+                  </ul>
+                {%- endif -%}
+              </cart-discount-component>
+            {%- endif -%}
+
             {%- if qualifies == false and free_over > 0 -%}
               <p class="brand-bag__ship-hint">
                 {{ section.settings.shipping_hint | replace: '[amount]', remaining }}
               </p>
             {%- endif -%}
 
+            {%- comment -%}
+              The ordinary cart post, which is the route that works everywhere —
+              a password-protected store and the local preview included. Any
+              applied code rides along as a hidden field rather than being
+              handed to the /discount/ route, which is not reachable in every
+              context and answered 401 when it was tried.
+            {%- endcomment -%}
             <form action="{{ routes.cart_url }}" method="post">
+              {%- if discount_codes.size > 0 -%}
+                <input type="hidden" name="discount" value="{{ discount_codes | join: ',' | escape }}">
+              {%- endif -%}
               <button type="submit" name="checkout" class="brand-bag__checkout">
                 {{- section.settings.checkout_label -}}
               </button>
@@ -501,6 +598,107 @@
     letter-spacing: -0.02em;
   }
 
+  .brand-bag__row--saving span:last-child {
+    color: var(--brand-navy);
+  }
+
+  /* --- Discount code ------------------------------------------------------ */
+
+  .brand-bag__discount {
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .brand-bag__discount-form {
+    display: flex;
+    gap: 6px;
+  }
+
+  .brand-bag__discount-form input {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 14px;
+    border: 1px solid rgb(var(--brand-navy-rgb) / 0.2);
+    border-radius: var(--brand-radius);
+    background: var(--brand-white);
+    color: var(--brand-navy);
+    font: 400 0.8125rem / 1 var(--brand-font-display);
+  }
+
+  .brand-bag__discount-form button {
+    flex: none;
+    padding: 12px 16px;
+    border: 1px solid rgb(var(--brand-navy-rgb) / 0.2);
+    border-radius: var(--brand-radius);
+    background: none;
+    color: var(--brand-navy);
+    font: var(--brand-type-button);
+    font-size: 0.625rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition:
+      border-color var(--brand-transition),
+      background-color var(--brand-transition);
+  }
+
+  .brand-bag__discount-form button:hover {
+    border-color: var(--brand-navy);
+    background: var(--brand-white);
+  }
+
+  .brand-bag__discount-error {
+    margin-top: 8px;
+    font: var(--brand-type-label);
+    font-size: 0.625rem;
+    line-height: 1.5;
+    letter-spacing: 0.06em;
+    color: var(--brand-error);
+  }
+
+  .brand-bag__pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 10px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .brand-bag__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 6px 5px 11px;
+    border-radius: var(--brand-radius-pill);
+    background: var(--brand-navy);
+    color: var(--brand-white);
+    font: var(--brand-type-label);
+    font-size: 0.5625rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .brand-bag__pill button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.16);
+    color: var(--brand-white);
+    font: 400 0.75rem / 1 var(--brand-font-display);
+    cursor: pointer;
+    transition: background-color var(--brand-transition);
+  }
+
+  .brand-bag__pill button:hover {
+    background: rgb(255 255 255 / 0.3);
+  }
+
   .brand-bag__ship-hint {
     margin: 0 0 16px;
     padding: 12px 14px;
@@ -509,9 +707,15 @@
     color: rgb(var(--brand-navy-rgb) / 0.55);
   }
 
+  /* Styled for both, since it is a button normally and a link when a discount
+     code has to be carried through to checkout. */
   .brand-bag__checkout {
+    display: block;
+    box-sizing: border-box;
     width: 100%;
     padding: 19px;
+    text-align: center;
+    text-decoration: none;
     border: 0;
     border-radius: var(--brand-radius);
     background: var(--brand-navy);
@@ -526,6 +730,7 @@
 
   .brand-bag__checkout:hover {
     background: var(--brand-navy-hover);
+    color: var(--brand-white);
   }
 
   .brand-bag__payments {
@@ -707,6 +912,26 @@
     },
     {
       "type": "text",
+      "id": "discount_label",
+      "label": "Discount row",
+      "info": "Only shown when something has been taken off.",
+      "default": "Discount"
+    },
+    {
+      "type": "text",
+      "id": "discount_placeholder",
+      "label": "Discount code field",
+      "info": "The field itself is switched on under Theme settings, in the cart group.",
+      "default": "Discount code"
+    },
+    {
+      "type": "text",
+      "id": "discount_apply",
+      "label": "Apply button",
+      "default": "APPLY"
+    },
+    {
+      "type": "text",
       "id": "shipping_label",
       "label": "Shipping",
       "default": "Shipping"
@@ -721,7 +946,7 @@
       "type": "text",
       "id": "shipping_unknown",
       "label": "Shipping before checkout",
-      "info": "Shopify works the real cost out at checkout, so it cannot be shown here.",
+      "info": "Shopify works the real cost out at checkout from the delivery address, so it cannot be shown here.",
       "default": "At checkout"
     },
     {
