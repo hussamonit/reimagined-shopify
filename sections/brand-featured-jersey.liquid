@@ -126,7 +126,9 @@
       {%- endif -%}
 
       {%- if section.settings.terms != blank -%}
-        <p class="brand-feature__terms">{{ section.settings.terms }}</p>
+        <p class="brand-feature__terms">
+          {%- render 'brand-delivery-text', text: section.settings.terms -%}
+        </p>
       {%- endif -%}
     </div>
   </section>
@@ -407,7 +409,8 @@
       "type": "text",
       "id": "terms",
       "label": "Delivery line",
-      "default": "2–7 business days in Saudi Arabia · Free over 200 SAR · 3-day returns"
+      "info": "[free_over] fills in the threshold from theme settings.",
+      "default": "2–7 business days in Saudi Arabia · Free over [free_over] · 3-day returns"
     }
   ],
   "presets": [{ "name": "Featured jersey" }]

@@ -41,7 +41,7 @@
         "select_label": "SELECT SIZE",
         "add_label": "ADD TO BAG",
         "size_hint": "PICK A SIZE FIRST",
-        "terms": "2–7 business days in Saudi Arabia · Free over 200 SAR · 3-day returns",
+        "terms": "2–7 business days in Saudi Arabia · Free over [free_over] · 3-day returns",
         "notify_label": "TELL ME WHEN IT IS BACK —",
         "notify_body": "Runs are kept small. Leave an email and you'll hear first if this size comes back.",
         "notify_placeholder": "Email address",

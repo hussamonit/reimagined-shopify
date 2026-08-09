@@ -21,7 +21,6 @@
         "shipping_label": "Shipping",
         "shipping_free": "Free",
         "shipping_unknown": "At checkout",
-        "free_shipping_over": 200,
         "shipping_hint": "Add [amount] more for free delivery.",
         "total_label": "TOTAL",
         "checkout_label": "CHECKOUT",

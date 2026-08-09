@@ -1,0 +1,24 @@
+{% doc %}
+  Writes a delivery line with the free shipping threshold filled in.
+
+  The threshold used to be typed into five separate pieces of copy — the bag,
+  the shop page's line, two delivery notes and the policy text — so raising it
+  meant remembering all five, and forgetting one left the site promising two
+  different things. Now it is one number in theme settings and every sentence
+  writes itself from it.
+
+  Write [free_over] wherever the amount belongs.
+
+  @param {string} text - The sentence, with or without the placeholder.
+
+  @example
+  {% render 'brand-delivery-text', text: section.settings.terms %}
+{% enddoc %}
+
+{%- comment -%}
+  Without trailing zeros, so a round threshold reads as "200 SAR" the way the
+  copy was written rather than "200.00". The currency and its position still
+  come from the store's own money format.
+{%- endcomment -%}
+{%- assign free_over = settings.free_shipping_threshold | times: 100 | money_without_trailing_zeros -%}
+{{- text | replace: '[free_over]', free_over -}}

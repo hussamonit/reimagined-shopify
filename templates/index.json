@@ -86,7 +86,7 @@
         "size_label": "Size",
         "select_label": "SELECT SIZE",
         "add_label": "ADD TO CART",
-        "terms": "2–7 business days in Saudi Arabia · Free over 200 SAR · 3-day returns"
+        "terms": "2–7 business days in Saudi Arabia · Free over [free_over] · 3-day returns"
       }
     },
     "jersey_grid": {

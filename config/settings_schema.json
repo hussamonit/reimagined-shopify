@@ -2181,7 +2181,14 @@
       },
       {
         "type": "paragraph",
-        "content": "Written once here. The product page accordion and the contact page's answered-already column both read it, so the two can never say different things."
+        "content": "Written once here. The bag, the shop page's line, both delivery notes and the contact page all read these, so the site cannot end up promising two different things. Write [free_over] wherever the threshold belongs in a sentence and it fills itself in."
+      },
+      {
+        "type": "number",
+        "id": "free_shipping_threshold",
+        "label": "Free shipping over",
+        "info": "This is what the site says, not what Shopify charges — keep it matching the rule in Settings → Shipping.",
+        "default": 200
       },
       {
         "type": "text",
@@ -2193,7 +2200,7 @@
         "type": "richtext",
         "id": "policy_delivery_body",
         "label": "Delivery copy",
-        "default": "<p>2–7 business days in Saudi Arabia, free on orders over 200 SAR. Every order ships tracked, and you get the number the moment it leaves us.</p>"
+        "default": "<p>2–7 business days in Saudi Arabia, free on orders over [free_over]. Every order ships tracked, and you get the number the moment it leaves us.</p>"
       },
       {
         "type": "text",

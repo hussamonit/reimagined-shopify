@@ -4,7 +4,7 @@
       "type": "brand-collection",
       "settings": {
         "heading": "All jerseys.",
-        "meta": "SS26 · 2–7 BUSINESS DAYS IN SAUDI ARABIA · FREE OVER 200 SAR",
+        "meta": "SS26 · 2–7 BUSINESS DAYS IN SAUDI ARABIA · FREE OVER [free_over]",
         "columns": "4",
         "per_page": 24,
         "quick_add": true,

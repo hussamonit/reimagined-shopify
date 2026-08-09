@@ -115,7 +115,9 @@
         <div class="brand-contact__answers">
           <div class="brand-contact__answer">
             <p class="brand-contact__answer-title">{{ settings.policy_delivery_title }}</p>
-            <div class="brand-contact__answer-body">{{ settings.policy_delivery_body }}</div>
+            <div class="brand-contact__answer-body">
+              {%- render 'brand-delivery-text', text: settings.policy_delivery_body -%}
+            </div>
             <a href="/policies/shipping-policy">{{ section.settings.shipping_link }} &rarr;</a>
           </div>
 

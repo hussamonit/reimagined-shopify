@@ -1,9 +1,15 @@
 {%- liquid
-  assign free_over = section.settings.free_shipping_over | times: 100
+  comment
+    The threshold is one number in theme settings. The bag, the shop page's
+    line and every delivery note read it, so raising it is one edit rather
+    than five and the site cannot end up contradicting itself.
+  endcomment
+  assign free_over = settings.free_shipping_threshold | times: 100
   assign qualifies = false
   if free_over > 0 and cart.total_price >= free_over
     assign qualifies = true
   endif
+
   comment
     Formatted here rather than in the filter chain below, where money would
     apply to the finished sentence instead of the number.
@@ -950,14 +956,8 @@
       "default": "At checkout"
     },
     {
-      "type": "range",
-      "id": "free_shipping_over",
-      "label": "Free shipping over",
-      "min": 0,
-      "max": 500,
-      "step": 25,
-      "unit": "SAR",
-      "default": 200
+      "type": "paragraph",
+      "content": "The free shipping threshold is set once in Theme settings → Reimagined, so the bag, the shop page and every delivery note agree."
     },
     {
       "type": "text",
