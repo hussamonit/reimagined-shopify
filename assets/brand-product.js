@@ -147,6 +147,8 @@ if (!customElements.get('brand-product-gallery')) {
  * @property {HTMLElement} [bar] - The sticky phone bar.
  * @property {HTMLButtonElement} [barButton] - Its button.
  * @property {HTMLElement} [barLabel] - Its button text.
+ * @property {HTMLElement[]} [priceNow] - Every current-price figure on the page.
+ * @property {HTMLElement[]} [priceWas] - Every was-price beside them.
  *
  * @extends {Component<BuyRefs>}
  */
@@ -221,12 +223,39 @@ class BrandProductBuy extends Component {
     // cannot be pressed instead of failing at the cart.
     if (barButton) barButton.disabled = soldOut;
 
+    this.#showPrice(button);
+
     const ready = addLabel?.dataset.readyLabel ?? '';
     if (addLabel && ready) addLabel.textContent = ready;
 
     if (barLabel) {
       const soldOutLabel = barLabel.dataset.soldOutLabel ?? '';
       barLabel.textContent = soldOut && soldOutLabel ? soldOutLabel : ready || barLabel.textContent;
+    }
+  }
+
+  /**
+   * Moves every price on the page onto the chosen size.
+   *
+   * The page opens on the product's lowest price, which is only the whole
+   * story while every size costs the same. Once one is reduced — or priced
+   * differently at all — the figure has to follow the size being looked at.
+   *
+   * @param {HTMLButtonElement} button
+   */
+  #showPrice(button) {
+    const { priceNow, priceWas } = this.refs;
+    const { price, compare } = button.dataset;
+
+    if (price) {
+      for (const element of priceNow ?? []) element.textContent = price;
+    }
+
+    for (const element of priceWas ?? []) {
+      element.hidden = !compare;
+
+      const value = element.querySelector('.brand-price__was-value');
+      if (value) value.textContent = compare ?? '';
     }
   }
 

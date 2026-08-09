@@ -87,7 +87,7 @@
       {%- endif -%}
 
       <p class="brand-feature__price">
-        <span>{{ product.price | money }}</span>
+        {% render 'brand-price', price: product.price, compare_at: product.compare_at_price_max %}
         {% render 'brand-stock-state', product: product, style: 'pill' %}
       </p>
 
@@ -246,7 +246,7 @@
     margin: 30px 0 0;
   }
 
-  .brand-feature__price > span:first-child {
+  .brand-feature__price .brand-price {
     font: 600 1.25rem / 1 var(--brand-font-display);
   }
 

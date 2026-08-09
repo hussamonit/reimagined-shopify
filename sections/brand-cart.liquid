@@ -96,7 +96,19 @@
                   </div>
                 </div>
 
-                <p class="brand-bag__line-total">{{ item.final_line_price | money }}</p>
+                {%- comment -%}
+                  The was-price has to be multiplied out, since this is a line
+                  total rather than a unit price.
+                {%- endcomment -%}
+                {%- liquid
+                  assign compare_line = 0
+                  if item.variant.compare_at_price > item.variant.price
+                    assign compare_line = item.variant.compare_at_price | times: item.quantity
+                  endif
+                -%}
+                <p class="brand-bag__line-total">
+                  {% render 'brand-price', price: item.final_line_price, compare_at: compare_line %}
+                </p>
               </div>
             {%- endfor -%}
 
@@ -187,7 +199,9 @@
             </span>
             <span class="brand-bag__suggestion-row">
               <span class="brand-bag__suggestion-name">{{ item.title }}</span>
-              <span class="brand-bag__suggestion-price">{{ item.price | money }}</span>
+              <span class="brand-bag__suggestion-price">
+                {%- render 'brand-price', price: item.price, compare_at: item.compare_at_price_max -%}
+              </span>
             </span>
             <span class="brand-bag__suggestion-state">
               {%- render 'brand-stock-state', product: item, compact: true -%}

@@ -115,7 +115,7 @@
   {%- endif -%}
 
   <p class="brand-tile__price">
-    <span>{{ product.price | money }}</span>
+    {% render 'brand-price', price: product.price, compare_at: product.compare_at_price_max %}
     {%- unless compact -%}
       {% render 'brand-stock-state', product: product, compact: true %}
     {%- endunless -%}
@@ -320,7 +320,7 @@
     padding: 11px 18px 0;
   }
 
-  .brand-tile__price > span:first-child {
+  .brand-tile__price .brand-price {
     font: 600 0.875rem / 1 var(--brand-font-display);
   }
 

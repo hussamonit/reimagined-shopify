@@ -1,0 +1,71 @@
+{% doc %}
+  A price, and what it used to be when there is an offer on.
+
+  Shared by the tiles, the featured panel, the product page and the bag, so a
+  reduced price is shown the same way everywhere. Deliberately restrained — a
+  struck-through was-price and nothing else. The brand sells on scarcity rather
+  than discount, so a loud sale badge would be working against the rest of the
+  page.
+
+  Prices are passed in cents, as Shopify holds them.
+
+  @param {number} price - What it costs now.
+  @param {number} [compare_at] - What it cost before. Ignored unless higher.
+  @param {string} [now_ref] - Ref for the current price, so a script can update it.
+  @param {string} [was_ref] - Ref for the was-price wrapper.
+
+  @example
+  {% render 'brand-price', price: product.price, compare_at: product.compare_at_price_max %}
+{% enddoc %}
+
+{%- liquid
+  assign on_offer = false
+  if compare_at != blank and compare_at > price
+    assign on_offer = true
+  endif
+-%}
+
+<span class="brand-price">
+  <span class="brand-price__now"{% if now_ref %} ref="{{ now_ref }}"{% endif %}>{{ price | money }}</span>
+
+  {%- comment -%}
+    Always rendered so a script can reveal it when a size with an offer on it is
+    picked. Hidden rather than absent.
+  {%- endcomment -%}
+  <s
+    class="brand-price__was"
+    {% if was_ref %}
+      ref="{{ was_ref }}"
+    {% endif %}
+    {% unless on_offer %}
+      hidden
+    {% endunless %}
+  >
+    <span class="visually-hidden">{{ 'content.price_compare_at' | t }}</span>
+    <span class="brand-price__was-value">
+      {%- if on_offer -%}{{ compare_at | money }}{%- endif -%}
+    </span>
+  </s>
+</span>
+
+{% stylesheet %}
+  .brand-price {
+    display: inline-flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+
+  /* Sized by whatever is around it, so one snippet serves a tile, a buy column
+     and a cart line without knowing which it is in. */
+  .brand-price__was {
+    font-size: 0.85em;
+    font-weight: 400;
+    color: rgb(var(--brand-navy-rgb) / 0.4);
+    text-decoration-thickness: 1px;
+  }
+
+  .brand-price__was[hidden] {
+    display: none;
+  }
+{% endstylesheet %}
