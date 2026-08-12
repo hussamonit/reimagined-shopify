@@ -104,6 +104,7 @@
     "variant_button_border_width": 1,
     "variant_button_radius": 2,
     "variant_button_width": "equal-width-buttons",
+    "free_shipping_threshold": 150,
     "content_for_index": [],
     "color_palette": {
       "background": "#ffffff",
